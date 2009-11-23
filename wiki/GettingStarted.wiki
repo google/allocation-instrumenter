@@ -1,0 +1,66 @@
+#summary A quick start guide to using the allocation instrumenter
+
+= Introduction =
+
+The goal of the allocation instrumenter is to track allocations as they occur in a Java program.   First, you can build the sources by checking them out and running "ant dist".  This will create a file called allocation.jar in the dist/ subdirectory.
+
+Assume that you have a program that creates 10 strings, and you want to instrument that creation:
+
+{{{
+public class Test {
+     public static void main(String [] args) throws Exception {
+	for (int i = 0 ; i < 10; i++) {
+	    new String("foo");
+	}
+    }
+}
+}}}
+
+To do this, you create an instance of the interface Sampler:
+{{{
+import com.google.monitoring.runtime.instrumentation.AllocationRecorder;
+import com.google.monitoring.runtime.instrumentation.Sampler;
+
+public class Test {
+     public static void main(String [] args) throws Exception {
+	AllocationRecorder.addSampler(new Sampler() {
+		public void sampleAllocation(int count, String desc,
+					     Object newObj, long size) {
+		    System.out.println("I just allocated the object " + newObj + 
+				       " of type " + desc + " whose size is " + size);
+		    if (count != -1) { System.out.println("It's an array of size " + count); }
+		}
+	    });
+	for (int i = 0 ; i < 10; i++) {
+	    new String("foo");
+	}
+    }
+}
+}}}
+You can then compile and run the program:
+{{{
+% javac -classpath path/to/allocation.jar Test.java
+% java -javaagent:path/to/allocation.jar Test
+}}}
+The output will look something like this:
+{{{
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+I just allocated the object foo of type java/lang/String whose size is 24
+...
+}}}
+And so on.  
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
