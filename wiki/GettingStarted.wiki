@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The goal of the allocation instrumenter is to track allocations as they occur in a Java program.   First, you can build the sources by checking them out and running "ant dist".  This will create a file called allocation.jar in the dist/ subdirectory.
+The goal of the allocation instrumenter is to track allocations as they occur in a Java program.   First, you can build the sources by checking them out and running "ant dist".  This will create a file called allocation.jar in the dist/ subdirectory.  Alternatively, you can <a href="http://java-allocation-instrumenter.googlecode.com/files/allocation.jar">download allocation.jar here</a>.
 
 Assume that you have a program that creates 10 strings, and you want to instrument that creation:
 
