@@ -143,21 +143,6 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   }
 
   /**
-   * The signature string the recorder method must have.  The method must be
-   * static, return void, and take as arguments:
-   * <ol>
-   * <li>an int count of how many instances are being allocated.  -1 means a
-   * simple new to distinguish from a 1-element array.  0 shows up as a value
-   * here sometimes; one reason is toArray()-type methods that require an array
-   * type argument (see ArrayList.toArray() for example).</li>
-   * <li>a String descriptor of the class/primitive type being allocated.</li>
-   * <li>an Object reference to the just-allocated Object.</li>
-   * </ol>
-   */
-  public static final String RECORDER_SIGNATURE =
-      "(ILjava/lang/String;Ljava/lang/Object;)V";
-
-  /**
    * @see #instrument(byte[], String, String) documentation for the 3-arg
    * version.  This is a convenience version that uses the recorder in this
    * class.

@@ -2,17 +2,15 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.MapMaker;
-
 import java.lang.instrument.Instrumentation;
-import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Logger;
+
+import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.MapMaker;
 
 /**
  * The logic for recording allocations, called from bytecode rewritten by
@@ -22,9 +20,6 @@ import java.util.logging.Logger;
  * @author fischman@google.com (Ami Fischman)
  */
 public class AllocationRecorder {
-  private static final Logger logger =
-    Logger.getLogger(AllocationRecorder.class.getName());
-
   static {
     // Sun's JVMs in 1.5.0_06 and 1.6.0{,_01} have a bug where calling
     // Instrumentation.getObjectSize() during JVM shutdown triggers a
@@ -164,7 +159,14 @@ public class AllocationRecorder {
   
     return classSize;
   }
-  
+
+  public static void recordAllocation(Class<?> cls, Object newObj) {
+    // The use of replace makes calls to this method relatively ridiculously
+    // expensive.
+    String typename = cls.getName().replace(".", "/");
+    recordAllocation(-1, typename, newObj);
+  }
+
   /**
    * Records the allocation.  This method is invoked on every allocation
    * performed by the system.
