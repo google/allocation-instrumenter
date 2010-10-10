@@ -295,7 +295,35 @@ class AllocationMethodAdapter extends MethodAdapter {
     }
 
     if (opcode == Opcodes.INVOKEVIRTUAL) {
-      if ("newInstance".equals(name)) {
+      if ("clone".equals(name) && owner.startsWith("[")) {
+        System.err.println(owner);
+        super.visitMethodInsn(opcode, owner, name, signature);
+        // -> stack: ... newobj
+        super.visitInsn(Opcodes.DUP);
+        // -> stack: ... newobj newobj
+        super.visitTypeInsn(Opcodes.CHECKCAST, owner);
+        // -> stack: ... newobj arrayref
+
+        int i = 0;
+        while (i < owner.length()) {
+          if (owner.charAt(i) != '[') {
+            break;
+          }
+          i++;
+        }
+        if (i > 1) {
+          calculateArrayLengthAndDispatch(owner.substring(i), i);
+        } else {
+          super.visitInsn(Opcodes.DUP);
+          // -> stack: ... newobj arrref arrref
+          super.visitInsn(Opcodes.ARRAYLENGTH);
+          // -> stack: ... newobj arrref length
+          super.visitInsn(Opcodes.SWAP);
+          // -> stack: ... newobj length arrref
+          invokeRecordAllocation(owner.substring(i));
+        }
+        return;
+      } else if ("newInstance".equals(name)) {
         if ("java/lang/Class".equals(owner) &&
             "()Ljava/lang/Object;".equals(signature)) {
           super.visitInsn(Opcodes.DUP);
@@ -483,7 +511,10 @@ class AllocationMethodAdapter extends MethodAdapter {
     // stack: ... dim1 dim2 dim3 ... dimN
     super.visitMultiANewArrayInsn(typeName, dimCount);
     // -> stack: ... aref
+    calculateArrayLengthAndDispatch(typeName, dimCount);
+  }
 
+  void calculateArrayLengthAndDispatch(String typeName, int dimCount) {
     // Since the dimensions of the array are not known at instrumentation
     // time, we take the created multi-dimensional array and peel off nesting
     // levels from the left.  For each nesting layer we probe the array length
