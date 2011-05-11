@@ -296,7 +296,6 @@ class AllocationMethodAdapter extends MethodAdapter {
 
     if (opcode == Opcodes.INVOKEVIRTUAL) {
       if ("clone".equals(name) && owner.startsWith("[")) {
-        System.err.println(owner);
         super.visitMethodInsn(opcode, owner, name, signature);
         // -> stack: ... newobj
         super.visitInsn(Opcodes.DUP);
