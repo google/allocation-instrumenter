@@ -313,12 +313,10 @@ class AllocationMethodAdapter extends MethodAdapter {
         if (i > 1) {
           calculateArrayLengthAndDispatch(owner.substring(i), i);
         } else {
-          super.visitInsn(Opcodes.DUP);
-          // -> stack: ... newobj arrref arrref
           super.visitInsn(Opcodes.ARRAYLENGTH);
-          // -> stack: ... newobj arrref length
+          // -> stack: ... newobj length
           super.visitInsn(Opcodes.SWAP);
-          // -> stack: ... newobj length arrref
+          // -> stack: ... length newobj
           invokeRecordAllocation(owner.substring(i));
         }
         return;
