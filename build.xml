@@ -2,7 +2,7 @@
   <description>
     Builds the allocation instrumenter Java agent.
   </description>
-  <property name="src" location="src"/>
+  <property name="src" location="java-allocation-instrumenter/src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 
@@ -18,7 +18,7 @@
   </path>
 
   <target name="base_compile" depends="init" description="basic compile">
-    <javac srcdir="${src}" destdir="${build}">
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
       <classpath refid="AllocationInstrumenter.classpath"/>
     </javac>
   </target>
