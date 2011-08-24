@@ -311,11 +311,6 @@ class AllocationMethodAdapter extends MethodAdapter {
     if (opcode == Opcodes.INVOKEVIRTUAL) {
       if ("clone".equals(name) && owner.startsWith("[")) {
         super.visitMethodInsn(opcode, owner, name, signature);
-        // -> stack: ... newobj
-        super.visitInsn(Opcodes.DUP);
-        // -> stack: ... newobj newobj
-        super.visitTypeInsn(Opcodes.CHECKCAST, owner);
-        // -> stack: ... newobj arrayref
 
         int i = 0;
         while (i < owner.length()) {
@@ -325,8 +320,16 @@ class AllocationMethodAdapter extends MethodAdapter {
           i++;
         }
         if (i > 1) {
+          // -> stack: ... newobj
+          super.visitTypeInsn(Opcodes.CHECKCAST, owner);
+          // -> stack: ... arrayref
           calculateArrayLengthAndDispatch(owner.substring(i), i);
         } else {
+          // -> stack: ... newobj
+          super.visitInsn(Opcodes.DUP);
+          // -> stack: ... newobj newobj
+          super.visitTypeInsn(Opcodes.CHECKCAST, owner);
+          // -> stack: ... newobj arrayref
           super.visitInsn(Opcodes.ARRAYLENGTH);
           // -> stack: ... newobj length
           super.visitInsn(Opcodes.SWAP);
