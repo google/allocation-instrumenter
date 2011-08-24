@@ -138,9 +138,10 @@ public class AllocationInstrumenter implements ClassFileTransformer {
       String recorderMethod) {
     try {
       ClassReader cr = new ClassReader(originalBytes);
-      ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+      ClassWriter cw = new ClassWriter(
+          cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
       VerifyingClassAdapter vcw =
-        new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
+          new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
       ClassAdapter adapter =
           new AIClassAdapter(vcw, recorderClass, recorderMethod);
 
