@@ -81,15 +81,18 @@ public class AllocationRecorder {
 
   // Used for reentrancy checks
   private static final ThreadLocal<Boolean> recordingAllocation = new ThreadLocal<Boolean>();
-  
+
+  // Stores the object sizes for the last ~100000 encountered classes
   private static final ForwardingMap<Class<?>, Long> classSizesMap = 
     new ForwardingMap<Class<?>, Long>() {
       private final ConcurrentMap<Class<?>, Long> map = new MapMaker()
           .weakKeys()
           .makeMap();
+
       @Override public Map<Class<?>, Long> delegate() {
         return map;
       }
+
       // The approximate maximum size of the map
       private static final int MAX_SIZE = 100000;
 

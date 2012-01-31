@@ -26,6 +26,13 @@ import org.objectweb.asm.commons.LocalVariablesSorter;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A <code>MethodAdapter</code> that instruments all heap allocation bytecodes
+ * to record the allocation being done for profiling.
+ * Instruments bytecodes that allocate heap memory to call a recording hook.
+ *
+ * @author Ami Fischman
+ */
 class AllocationMethodAdapter extends MethodAdapter {
   /**
    * The signature string the recorder method must have.  The method must be
@@ -50,9 +57,7 @@ class AllocationMethodAdapter extends MethodAdapter {
     "(Ljava/lang/Class;Ljava/lang/Object;)V";
 
   // A helper struct for describing the scope of temporary local variables we
-  // create as part of the instrumentation.  This wants to be an inner class of
-  // AIMethodAdapter but Java doesn't allow static classes inside static inner
-  // classes, so here it is.
+  // create as part of the instrumentation.
   private static class VariableScope {
     public final int index;
     public final Label start;
@@ -93,14 +98,14 @@ class AllocationMethodAdapter extends MethodAdapter {
   /**
    * The LocalVariablesSorter used in this adapter.  Lame that it's public but
    * the ASM architecture requires setting it from the outside after this
-   * AIMethodAdapter is fully constructed and the LocalVariablesSorter
+   * AllocationMethodAdapter is fully constructed and the LocalVariablesSorter
    * constructor requires a reference to this adapter.  The only setter of
-   * this should be AIClassAdapter.visitMethod().
+   * this should be AllocationClassAdapter.visitMethod().
    */
   public LocalVariablesSorter lvs = null;
 
   /**
-   * A new AIMethodAdapter is created for each method that gets visited.
+   * A new AllocationMethodAdapter is created for each method that gets visited.
    */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass,
                          String recorderMethod) {
