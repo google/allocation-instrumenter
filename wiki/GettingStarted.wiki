@@ -73,12 +73,17 @@ public class Test {
 
   static int count = 0;
 
+  int x;
+  Test() {
+    x = count;
+  }
   public static void main(String[] args) {
     try {
       ConstructorInstrumenter.instrumentClass(
           Test.class, new ConstructorCallback<Test>() {
             @Override public void sample(Test t) {
-              System.out.println("Constructing an element of type Test");
+              System.out.println(
+                  "Constructing an element of type Test with x = " + t.x);
               count++;
             }
           });
@@ -99,16 +104,16 @@ You can then compile and run the program:
 }}}
 The output will look something like this:
 {{{
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
-Constructing an element of type Test
+Constructing an element of type Test with x=0
+Constructing an element of type Test with x=1
+Constructing an element of type Test with x=2
+Constructing an element of type Test with x=3
+Constructing an element of type Test with x=4
+Constructing an element of type Test with x=5
+Constructing an element of type Test with x=6
+Constructing an element of type Test with x=7
+Constructing an element of type Test with x=8
+Constructing an element of type Test with x=9
 Constructed 10 instances of Test
 }}}
 
