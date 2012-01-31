@@ -41,6 +41,7 @@
 	<attribute name="Boot-Class-Path" value="./allocation.jar"/>
 	<attribute name="Premain-Class" value="com.google.monitoring.runtime.instrumentation.AllocationInstrumenter"/>
 	<attribute name="Can-Redefine-Classes" value="true" />
+	<attribute name="Can-Retransform-Classes" value="true" />
 	<attribute name="Main-Class" value="NotSuitableAsMain" />
       </manifest>
       <fileset dir="${build}"/>
