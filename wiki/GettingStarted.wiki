@@ -4,6 +4,8 @@
 
 The goal of the allocation instrumenter is to track allocations as they occur in a Java program.   First, you can build the sources by checking them out and running "ant dist".  This will create a file called allocation.jar in the dist/ subdirectory.  Alternatively, you can <a href="http://java-allocation-instrumenter.googlecode.com/files/allocation.jar">download allocation.jar here</a>.
 
+==Instrumenting Allocations==
+
 Assume that you have a program that creates 10 strings, and you want to instrument that creation:
 
 {{{
@@ -57,6 +59,65 @@ I just allocated the object foo of type java/lang/String whose size is 24
 ...
 }}}
 And so on.  
+
+== Instrumenting Constructors ==
+
+Allocation instrumentation allows the user to instrument all of the allocations that a program executes.  The allocation instrumenter can also instrument the construction of particular classes.  Assume that you have a program that creates 10 instances of type Test, and you want to track those creations:
+
+{{{
+import java.lang.instrument.UnmodifiableClassException;
+import com.google.monitoring.runtime.instrumentation.ConstructorInstrumenter;
+import com.google.monitoring.runtime.instrumentation.ConstructorCallback;
+
+public class Test {
+
+  static int count = 0;
+
+  public static void main(String[] args) {
+    try {
+      ConstructorInstrumenter.instrumentClass(
+          Test.class, new ConstructorCallback<Test>() {
+            @Override public void sample(Test t) {
+              System.out.println("Constructing an element of type Test");
+              count++;
+            }
+          });
+    } catch (UnmodifiableClassException e) {
+      System.out.println("Class cannot be modified");
+    }
+    for (int i = 0; i < 10; i++) {
+      new Test();
+    }
+    System.out.println("Constructed " + count + " instances of Test");
+  }
+}
+}}}
+You can then compile and run the program:
+{{{
+% javac -classpath path/to/allocation.jar Test.java
+% java -javaagent:path/to/allocation.jar Test
+}}}
+The output will look something like this:
+{{{
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructing an element of type Test
+Constructed 10 instances of Test
+}}}
+
+This approach also adds hooks to instrument all of your allocations.  This may slow your code down.  If you want to instrument constructors of named classes, but *not* allocations, you can change your command line flag thus:
+{{{
+% javac -classpath path/to/allocation.jar Test.java
+% java -javaagent:path/to/allocation.jar=manualOnly Test
+}}}
+"manualOnly" implies that we will only use the constructor instrumenter (i.e., we will instrument each class manually).
 
 = Details =
 
