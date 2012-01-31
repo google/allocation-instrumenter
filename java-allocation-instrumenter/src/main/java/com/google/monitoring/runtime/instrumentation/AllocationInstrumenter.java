@@ -18,16 +18,15 @@ package com.google.monitoring.runtime.instrumentation;
 
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.commons.LocalVariablesSorter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,19 +51,44 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   // guarantee programmatically.
   private static volatile boolean canRewriteBootstrap;
 
+  static boolean canRewriteClass(String className, ClassLoader loader) {
+    // There are two conditions under which we don't rewrite:
+    //  1. If className was loaded by the bootstrap class loader and
+    //  the agent wasn't (in which case the class being rewritten
+    //  won't be able to call agent methods).
+    //  2. If it is java.lang.ThreadLocal, which can't be rewritten because the
+    //  JVM depends on its structure.
+    if (((loader == null) && !canRewriteBootstrap) ||
+        className.startsWith("java/lang/ThreadLocal")) {
+      return false;
+    }
+    // third_party/java/webwork/*/ognl.jar contains bad class files.  Ugh.
+    if (className.startsWith("ognl/")) {
+      return false;
+    }
+
+    return true;
+  }
+
   // No instantiating me except in premain() or in {@link JarClassTransformer}.
   AllocationInstrumenter() { }
 
   public static void premain(String agentArgs, Instrumentation inst) {
     AllocationRecorder.setInstrumentation(inst);
 
-    inst.addTransformer(new AllocationInstrumenter(),
-        inst.isRetransformClassesSupported());
-    
+    // Force eager class loading here; we need this class to do
+    // instrumentation, so if we don't do the eager class loading, we
+    // get a ClassCircularityError when trying to load and instrument
+    // this class.
+    try {
+      Class.forName("sun.security.provider.PolicyFile");
+    } catch (Throwable t) {
+      // NOP
+    }
+
     if (!inst.isRetransformClassesSupported()) {
       System.err.println("Some JDK classes are already loaded and " +
           "will not be instrumented.");
-      return;
     }
 
     // Don't try to rewrite classes loaded by the bootstrap class
@@ -80,6 +104,24 @@ public class AllocationInstrumenter implements ClassFileTransformer {
 
     canRewriteBootstrap = true;
 
+    inst.addTransformer(new ConstructorInstrumenter(),
+        inst.isRetransformClassesSupported());
+
+    List<String> args = Arrays.asList(
+        agentArgs == null ? new String[0] : agentArgs.split(","));
+    if (!args.contains("manualOnly")) {
+      bootstrap(inst);
+    }
+  }
+
+  private static void bootstrap(Instrumentation inst) {
+    inst.addTransformer(new AllocationInstrumenter(),
+        inst.isRetransformClassesSupported());
+
+    if (!canRewriteBootstrap) {
+      return;
+    }
+
     // Get the set of already loaded classes that can be rewritten.
     Class<?>[] classes = inst.getAllLoadedClasses();
     ArrayList<Class<?>> classList = new ArrayList<Class<?>>();
@@ -94,31 +136,21 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     try {
       inst.retransformClasses(classList.toArray(workaround));
     } catch (UnmodifiableClassException e) {
-      System.err.println(
-          "AllocationInstrumenter was unable to retransform early loaded classes.");
+      System.err.println("AllocationInstrumenter was unable to " +
+          "retransform early loaded classes.");
     }
+
+
   }
 
-  public byte[] transform(ClassLoader loader, String className,
-                          Class<?> classBeingRedefined,
-                          ProtectionDomain protectionDomain,
-                          byte[] origBytes) {
-    // There are two conditions under which we don't rewrite:
-    //  1. If className was loaded by the bootstrap class loader and
-    //  the agent wasn't (in which case the class being rewritten
-    //  won't be able to call agent methods).
-    //  2. If it is java.lang.ThreadLocal, which can't be rewritten because the
-    //  JVM depends on its structure.
-    if (((loader == null) && !canRewriteBootstrap) ||
-        className.startsWith("java/lang/ThreadLocal")) {
-      return null;
-    }
-    // third_party/java/webwork/*/ognl.jar contain bad class files.  Ugh.
-    if (className.startsWith("ognl/")) {
+  @Override public byte[] transform(
+      ClassLoader loader, String className, Class<?> classBeingRedefined,
+      ProtectionDomain protectionDomain, byte[] origBytes) {
+    if (!canRewriteClass(className, loader)) {
       return null;
     }
 
-    return instrument(origBytes);
+   return instrument(origBytes, loader);
   }
 
   /**
@@ -135,15 +167,18 @@ public class AllocationInstrumenter implements ClassFileTransformer {
    * @return the instrumented <code>byte[]</code> code.
    */
   public static byte[] instrument(byte[] originalBytes, String recorderClass,
-      String recorderMethod) {
+      String recorderMethod, ClassLoader loader) {
     try {
       ClassReader cr = new ClassReader(originalBytes);
-      ClassWriter cw = new ClassWriter(
-          cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+      // The verifier in JDK7 requires accurate stackmaps, so we use
+      // COMPUTE_FRAMES.
+      ClassWriter cw =
+          new StaticClassWriter(cr, ClassWriter.COMPUTE_FRAMES, loader);
+
       VerifyingClassAdapter vcw =
           new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
       ClassAdapter adapter =
-          new AIClassAdapter(vcw, recorderClass, recorderMethod);
+          new AllocationClassAdapter(vcw, recorderClass, recorderMethod);
 
       cr.accept(adapter, ClassReader.SKIP_FRAMES);
 
@@ -157,52 +192,17 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     }
   }
 
+
   /**
-   * @see #instrument(byte[], String, String) documentation for the 3-arg
-   * version.  This is a convenience version that uses the recorder in this
-   * class.
+   * @see #instrument(byte[], String, String, ClassLoader)
+   * documentation for the 4-arg version.  This is a convenience
+   * version that uses the recorder in this class.
    */
-  public static byte[] instrument(byte[] originalBytes) {
+  public static byte[] instrument(byte[] originalBytes, ClassLoader loader) {
     return instrument(
         originalBytes,
         "com/google/monitoring/runtime/instrumentation/AllocationRecorder",
-        "recordAllocation");
-  }
-
-  /**
-   * A <code>ClassAdapter</code> that processes methods with a
-   * <code>AIMethodAdapter</code> to instrument heap allocations.
-   */
-  private static class AIClassAdapter extends ClassAdapter {
-    private final String recorderClass;
-    private final String recorderMethod;
-
-    public AIClassAdapter(ClassVisitor cv, String recorderClass,
-                          String recorderMethod) {
-      super(cv);
-      this.recorderClass = recorderClass;
-      this.recorderMethod = recorderMethod;
-    }
-
-    /**
-     * For each method in the class being instrumented, <code>visitMethod</code>
-     * is called and the returned MethodVisitor is used to visit the method.
-     * Note that a new MethodVisitor is constructed for each method.
-     */
-    @Override
-    public MethodVisitor visitMethod(int access, String base, String desc,
-                                     String signature, String[] exceptions) {
-      MethodVisitor mv =
-        cv.visitMethod(access, base, desc, signature, exceptions);
-
-      if (mv != null) {
-        AllocationMethodAdapter aimv =
-            new AllocationMethodAdapter(mv, recorderClass, recorderMethod);
-        LocalVariablesSorter lvs = new LocalVariablesSorter(access, desc, aimv);
-        aimv.lvs = lvs;
-        mv = lvs;
-      }
-      return mv;
-    }
+        "recordAllocation",
+        loader);
   }
 }
