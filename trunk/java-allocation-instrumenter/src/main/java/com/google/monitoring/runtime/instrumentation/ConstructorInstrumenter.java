@@ -39,9 +39,7 @@ import java.util.logging.Logger;
  * Instruments bytecode by inserting a specified call in the
  * constructor of a given class.  This class is intended to be loaded
  * by a javaagent; end-users will want to add {@link ConstructorCallback}s by
- * invoking {@link
- * com.google.monitoring.runtime.allocation.AllocationInspector#
- * addConstructorCallback(Class, ConstructorCallback)}.
+ * invoking {@link #instrumentClass(Class, ConstructorCallback)}.
  *
  * @author Jeremy Manson
  */
