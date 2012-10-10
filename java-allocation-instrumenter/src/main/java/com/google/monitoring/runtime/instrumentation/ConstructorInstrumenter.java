@@ -16,11 +16,9 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassAdapter;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.LocalVariablesSorter;
@@ -125,7 +123,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
       ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
       VerifyingClassAdapter vcw =
         new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
-      ClassAdapter adapter =
+      ClassVisitor adapter =
           new ConstructorClassAdapter(vcw, classBeingRedefined);
 
       cr.accept(adapter, ClassReader.SKIP_FRAMES);
@@ -144,7 +142,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    * The per-method transformations to make.  Really only affects the
    * <init> methods.
    */
-  static class ConstructorMethodAdapter extends MethodAdapter {
+  static class ConstructorMethodAdapter extends MethodVisitor {
     /**
      * The LocalVariablesSorter used in this adapter.  Lame that it's public but
      * the ASM architecture requires setting it from the outside after this
@@ -155,7 +153,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     public LocalVariablesSorter lvs = null;
     Class<?> cl;
     ConstructorMethodAdapter(MethodVisitor mv, Class<?> cl) {
-      super(mv);
+      super(Opcodes.ASM4, mv);
       this.cl = cl;
     }
 
@@ -202,10 +200,10 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    * The class that deals with per-class transformations.  Basically, invokes
    * the per-method transformer above if the method is an {@code <init>} method.
    */
-  static class ConstructorClassAdapter extends ClassAdapter {
+  static class ConstructorClassAdapter extends ClassVisitor {
     Class<?> cl;
     public ConstructorClassAdapter(ClassVisitor cv, Class<?> cl) {
-      super(cv);
+      super(Opcodes.ASM4, cv);
       this.cl = cl;
     }
 

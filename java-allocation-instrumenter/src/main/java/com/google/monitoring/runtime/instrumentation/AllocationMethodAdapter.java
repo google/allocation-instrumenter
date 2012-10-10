@@ -17,7 +17,6 @@
 package com.google.monitoring.runtime.instrumentation;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -33,7 +32,7 @@ import java.util.List;
  *
  * @author Ami Fischman
  */
-class AllocationMethodAdapter extends MethodAdapter {
+class AllocationMethodAdapter extends MethodVisitor {
   /**
    * The signature string the recorder method must have.  The method must be
    * static, return void, and take as arguments:
@@ -109,7 +108,7 @@ class AllocationMethodAdapter extends MethodAdapter {
    */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass,
                          String recorderMethod) {
-    super(mv);
+    super(Opcodes.ASM4, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
