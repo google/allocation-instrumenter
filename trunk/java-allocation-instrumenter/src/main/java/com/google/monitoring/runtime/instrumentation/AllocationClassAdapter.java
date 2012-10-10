@@ -2,27 +2,27 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 
 /**
  * Instruments bytecodes that allocate heap memory to call a recording hook.
- * A <code>ClassAdapter</code> that processes methods with a
+ * A <code>ClassVisitor</code> that processes methods with a
  * <code>AllocationMethodAdapter</code> to instrument heap allocations.
  *
  * @author 
  * @author fischman@google.com (Ami Fischman) (Original Author)
  */
-class AllocationClassAdapter extends ClassAdapter {
+class AllocationClassAdapter extends ClassVisitor {
   private final String recorderClass;
   private final String recorderMethod;
 
   public AllocationClassAdapter(ClassVisitor cv, String recorderClass,
       String recorderMethod) {
-    super(cv);
+    super(Opcodes.ASM4, cv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
