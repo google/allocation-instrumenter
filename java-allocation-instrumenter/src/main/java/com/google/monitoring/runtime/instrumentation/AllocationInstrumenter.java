@@ -16,7 +16,7 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
@@ -177,7 +177,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
 
       VerifyingClassAdapter vcw =
           new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
-      ClassAdapter adapter =
+      ClassVisitor adapter =
           new AllocationClassAdapter(vcw, recorderClass, recorderMethod);
 
       cr.accept(adapter, ClassReader.SKIP_FRAMES);

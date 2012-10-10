@@ -16,9 +16,10 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.CodeSizeEvaluator;
 
 import java.util.logging.Level;
@@ -33,7 +34,7 @@ import java.util.logging.Logger;
  * 
  * @author jeremymanson@google.com (Jeremy Manson)
  */
-public class VerifyingClassAdapter extends ClassAdapter {
+public class VerifyingClassAdapter extends ClassVisitor {
   private static final Logger logger =
     Logger.getLogger(VerifyingClassAdapter.class.getName());
 
@@ -57,7 +58,7 @@ public class VerifyingClassAdapter extends ClassAdapter {
    */
   public VerifyingClassAdapter(ClassWriter cw, byte [] original,
       String className) {
-    super(cw);
+    super(Opcodes.ASM4, cw);
     state = State.UNKNOWN;
     message = "The class has not finished being examined";
     this.cw = cw;
