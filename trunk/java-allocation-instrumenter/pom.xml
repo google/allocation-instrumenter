@@ -9,12 +9,13 @@
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>5</version>
+    <version>7</version>
   </parent>
   <url>http://code.google.com/p/java-allocation-instrumenter/</url>
   <description>java-allocation-instrumenter: A Java agent that rewrites bytecode to instrument allocation sites</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <projectAsmVersion>4.0</projectAsmVersion>
   </properties>
   <licenses>
     <license>
@@ -38,40 +39,39 @@
   </organization>
   <dependencies>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-xml</artifactId>
-      <version>3.3.1</version>
+      <version>${projectAsmVersion}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>r08</version>
-      <scope>compile</scope>
+      <version>r06</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -83,38 +83,42 @@
   <build>
     <defaultGoal>package</defaultGoal>
     <plugins>
+      <!-- ensure java version -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.0</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
       </plugin>
+      <!-- configure eclipse project -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-eclipse-plugin</artifactId>
-        <version>2.8</version>
+        <version>2.9</version>
         <configuration>
           <downloadSources>true</downloadSources>
           <downloadJavadocs>true</downloadJavadocs>
           <workspace>../eclipse-ws/</workspace>
         </configuration>
       </plugin>
+      <!-- define release properties -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.1</version>
+        <version>2.4</version>
         <configuration>
           <arguments>-DenableCiProfile=true</arguments>
           <tagBase>https://java-allocation-instrumenter.googlecode.com/svn/tags/</tagBase>
         </configuration>
       </plugin>
+      <!-- always attach sources -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.2</version>
+        <version>2.2.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -124,10 +128,11 @@
           </execution>
         </executions>
       </plugin>
+      <!-- always attach javadoc -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.7</version>
+        <version>2.9</version>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -143,6 +148,59 @@
           <version>true</version>
           <show>public</show>
         </configuration>
+      </plugin>
+      <!-- customize manifest -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Boot-Class-Path>./allocation.jar</Boot-Class-Path>
+              <Premain-Class>com.google.monitoring.runtime.instrumentation.AllocationInstrumenter</Premain-Class>
+              <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
+              <Main-Class>NotSuitableAsMain</Main-Class>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- embed dependencies -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>jarjar-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>embed-jars</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jarjar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>org.ow2.asm:asm</include>
+                <include>org.ow2.asm:asm-analysis</include>
+                <include>org.ow2.asm:asm-commons</include>
+                <include>org.ow2.asm:asm-tree</include>
+                <include>org.ow2.asm:asm-util</include>
+                <include>org.ow2.asm:asm-xml</include>
+                <include>com.google.guava:guava</include>
+              </includes>
+              <rules>
+                <rule>
+                  <pattern>org.objectweb.asm.**</pattern>
+                  <result>com.google.monitoring.runtime.instrumentation.asm.@1</result>
+                </rule>
+                <rule>
+                  <pattern>com.google.common.**</pattern>
+                  <result>com.google.monitoring.runtime.instrumentation.common.@0</result>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
