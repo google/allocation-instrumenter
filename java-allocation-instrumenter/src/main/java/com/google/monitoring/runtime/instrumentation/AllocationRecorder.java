@@ -18,6 +18,8 @@ package com.google.monitoring.runtime.instrumentation;
 
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -151,6 +153,20 @@ public class AllocationRecorder {
         newSamplers[0] = sampler;
         additionalSamplers = newSamplers;
       }
+    }
+  }
+
+  /**
+   * Removes the given {@link Sampler}.
+   *
+   * @param sampler  The sampler to remove.
+   */
+  public static void removeSampler(Sampler sampler) {
+    synchronized (samplerLock) {
+      Sampler[] samplers = additionalSamplers;
+      List<Sampler> l = Arrays.asList(samplers);
+      while (l.remove(sampler));
+      additionalSamplers = l.toArray(new Sampler[0]);
     }
   }
 
