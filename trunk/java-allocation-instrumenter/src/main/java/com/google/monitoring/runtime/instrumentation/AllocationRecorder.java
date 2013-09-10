@@ -164,9 +164,20 @@ public class AllocationRecorder {
   public static void removeSampler(Sampler sampler) {
     synchronized (samplerLock) {
       Sampler[] samplers = additionalSamplers;
-      List<Sampler> l = Arrays.asList(samplers);
-      while (l.remove(sampler));
-      additionalSamplers = l.toArray(new Sampler[0]);
+      int samplerCount = samplers.length;
+      for (Sampler s : samplers) {
+        if (s.equals(sampler)) {
+          samplerCount--;
+        }
+      }
+      Sampler[] newSamplers = new Sampler[samplerCount];
+      int i = 0;
+      for (Sampler s : samplers) {
+        if (!s.equals(sampler)) {
+          newSamplers[i++] = s;
+        }
+      }
+      additionalSamplers = newSamplers;
     }
   }
 
