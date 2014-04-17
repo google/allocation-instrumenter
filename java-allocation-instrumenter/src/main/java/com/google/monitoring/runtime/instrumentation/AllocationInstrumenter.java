@@ -40,8 +40,8 @@ import java.util.logging.Logger;
  * @author Jeremy Manson
  */
 public class AllocationInstrumenter implements ClassFileTransformer {
-  private static final Logger logger =
-      Logger.getLogger(AllocationInstrumenter.class.getName());
+   static final Logger logger =
+       Logger.getLogger(AllocationInstrumenter.class.getName());
 
   // We can rewrite classes loaded by the bootstrap class loader
   // iff the agent is loaded by the bootstrap class loader.  It is
