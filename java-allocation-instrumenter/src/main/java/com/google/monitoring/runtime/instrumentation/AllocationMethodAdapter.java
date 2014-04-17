@@ -24,6 +24,8 @@ import org.objectweb.asm.commons.LocalVariablesSorter;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A <code>MethodVisitor</code> that instruments all heap allocation bytecodes
@@ -505,12 +507,18 @@ class AllocationMethodAdapter extends MethodVisitor {
     return newLocal(type, type.getDescriptor(), begin, end);
   }
 
+  private static final Pattern namePattern =
+      Pattern.compile("^\\[*L([^;]+);$");
+
   // Helper method to actually invoke the recorder function for an allocation
   // event.
   // pre: stack: ... count newobj
   // post: stack: ... newobj
   private void invokeRecordAllocation(String typeName) {
-    typeName = typeName.replaceAll("^\\[*L", "").replaceAll(";$", "");
+    Matcher matcher = namePattern.matcher(typeName);
+    if (matcher.find()) {
+      typeName = matcher.group(1);
+    }
     // stack: ... count newobj
     super.visitInsn(Opcodes.DUP_X1);
     // -> stack: ... newobj count newobj
