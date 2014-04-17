@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A <code>MethodAdapter</code> that instruments all heap allocation bytecodes
+ * A <code>MethodVisitor</code> that instruments all heap allocation bytecodes
  * to record the allocation being done for profiling.
  * Instruments bytecodes that allocate heap memory to call a recording hook.
  *
@@ -46,14 +46,14 @@ class AllocationMethodAdapter extends MethodVisitor {
    * </ol>
    */
   public static final String RECORDER_SIGNATURE =
-    "(ILjava/lang/String;Ljava/lang/Object;)V";
+      "(ILjava/lang/String;Ljava/lang/Object;)V";
 
   /**
    * Like RECORDER_SIGNATURE, but for a method that extracts all of
    * the information dynamically from a class.
    */
   public static final String CLASS_RECORDER_SIG =
-    "(Ljava/lang/Class;Ljava/lang/Object;)V";
+      "(Ljava/lang/Class;Ljava/lang/Object;)V";
 
   // A helper struct for describing the scope of temporary local variables we
   // create as part of the instrumentation.
@@ -66,8 +66,8 @@ class AllocationMethodAdapter extends MethodVisitor {
       this.index = index; this.start = start; this.end = end; this.desc = desc;
     }
   }
-  
-  // Dictionary of primitive type opcode to English name.
+
+  // Dictionary of primitive type opcode to english name.
   private static final String[] primitiveTypeNames = new String[] {
     "INVALID0", "INVALID1", "INVALID2", "INVALID3",
     "boolean", "char", "float", "double",
@@ -246,7 +246,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         pushClassNameOnStack();
         // -> stack: ... class className
         int typeNameIndex =
-            newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
+          newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
         super.visitVarInsn(Opcodes.ASTORE, typeNameIndex);
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ILOAD, countIndex);
@@ -286,7 +286,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         pushClassNameOnStack();
         // -> stack: ... class className
         int typeNameIndex =
-            newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
+          newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
         super.visitVarInsn(Opcodes.ASTORE, typeNameIndex);
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ALOAD, dimsArrayIndex);
@@ -437,7 +437,12 @@ class AllocationMethodAdapter extends MethodVisitor {
     }
     super.visitInsn(Opcodes.DUP);
     for (int i = 0; i < argTypes.length; ++i) {
-      super.visitVarInsn(argTypes[i].getOpcode(Opcodes.ILOAD), args[i]);
+      int op = argTypes[i].getOpcode(Opcodes.ILOAD);
+      super.visitVarInsn(op, args[i]);
+      if (op == Opcodes.ALOAD) {
+        super.visitInsn(Opcodes.ACONST_NULL);
+        super.visitVarInsn(Opcodes.ASTORE, args[i]);
+      }
     }
     super.visitLabel(endScopeLabel);
   }
@@ -476,7 +481,7 @@ class AllocationMethodAdapter extends MethodVisitor {
     if (localScopes != null) {
       for (VariableScope scope : localScopes) {
         super.visitLocalVariable("xxxxx$" + scope.index, scope.desc, null,
-                                 scope.start, scope.end, scope.index);
+            scope.start, scope.end, scope.index);
       }
     }
     super.visitMaxs(maxStack, maxLocals);
@@ -484,7 +489,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
   // Helper method to allocate a new local variable and account for its scope.
   private int newLocal(Type type, String typeDesc,
-                       Label begin, Label end) {
+      Label begin, Label end) {
     int newVar = lvs.newLocal(type);
     getLocalScopes().add(new VariableScope(newVar, begin, end, typeDesc));
     return newVar;
@@ -514,7 +519,7 @@ class AllocationMethodAdapter extends MethodVisitor {
     super.visitInsn(Opcodes.SWAP);
     // -> stack: ... newobj count typename newobj
     super.visitMethodInsn(Opcodes.INVOKESTATIC,
-                          recorderClass, recorderMethod, RECORDER_SIGNATURE);
+        recorderClass, recorderMethod, RECORDER_SIGNATURE);
     // -> stack: ... newobj
   }
 

@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * @author Jeremy Manson
  */
 public class AllocationInstrumenter implements ClassFileTransformer {
-  static final Logger logger =
+  private static final Logger logger =
       Logger.getLogger(AllocationInstrumenter.class.getName());
 
   // We can rewrite classes loaded by the bootstrap class loader
@@ -150,7 +150,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
       return null;
     }
 
-   return instrument(origBytes, loader);
+    return instrument(origBytes, loader);
   }
 
   /**
