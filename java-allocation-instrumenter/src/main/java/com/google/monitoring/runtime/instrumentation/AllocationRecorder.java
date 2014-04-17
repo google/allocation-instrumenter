@@ -207,7 +207,7 @@ public class AllocationRecorder {
   public static void recordAllocation(Class<?> cls, Object newObj) {
     // The use of replace makes calls to this method relatively ridiculously
     // expensive.
-    String typename = cls.getName().replace(".", "/");
+    String typename = cls.getName().replace('.', '/');
     recordAllocation(-1, typename, newObj);
   }
 
