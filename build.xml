@@ -28,8 +28,15 @@
 	     classpath="lib/jarjar-1.0.jar" />
     <jarjar destfile="${dist}/collect.jar">
       <zipfileset src="lib/guava-17.0.jar" />
-      <keep pattern="com.google.common.collect.MapMaker"/>
+      <keep pattern="com.google.common.collect.ComputingCache"/>
+      <keep pattern="com.google.common.collect.ComputingConcurrentHashMap"/>
       <keep pattern="com.google.common.collect.ForwardingMap"/>
+      <keep pattern="com.google.common.collect.MapMaker"/>
+      <keep pattern="com.google.common.base.FunctionalEquivalence"/>
+      <keep pattern="com.google.common.base.PairwiseEquivalence"/>
+      <keep pattern="com.google.common.base.Supplier"/>
+      <keep pattern="com.google.common.base.Suppliers"/>
+      <keep pattern="com.google.common.primitives.Ints"/>
     </jarjar>
   </target>
 
