@@ -27,7 +27,7 @@
     <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
 	     classpath="lib/jarjar-1.0.jar" />
     <jarjar destfile="${dist}/collect.jar">
-      <zipfileset src="lib/guava-r06.jar" />
+      <zipfileset src="lib/guava-17.0.jar" />
       <keep pattern="com.google.common.collect.MapMaker"/>
       <keep pattern="com.google.common.collect.ForwardingMap"/>
     </jarjar>
