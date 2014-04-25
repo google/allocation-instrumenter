@@ -132,7 +132,7 @@ class StaticClassWriter extends ClassWriter {
     private final String[] interfaces;
 
     public ClassInfo(String type, ClassLoader loader) {
-      Class cls = null;
+      Class<?> cls = null;
       // First, see if we can extract the information from the class...
       try {
         cls = Class.forName(type);

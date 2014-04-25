@@ -523,7 +523,7 @@ class AllocationMethodAdapter extends MethodVisitor {
     super.visitInsn(Opcodes.SWAP);
     // -> stack: ... newobj count typename newobj
     super.visitMethodInsn(Opcodes.INVOKESTATIC,
-        recorderClass, recorderMethod, RECORDER_SIGNATURE);
+        recorderClass, recorderMethod, RECORDER_SIGNATURE, false);
     // -> stack: ... newobj
   }
 
