@@ -76,12 +76,14 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   public static void premain(String agentArgs, Instrumentation inst) {
     AllocationRecorder.setInstrumentation(inst);
 
-    // Force eager class loading here; we need this class to do
+    // Force eager class loading here; we need these classes in order to do
     // instrumentation, so if we don't do the eager class loading, we
     // get a ClassCircularityError when trying to load and instrument
     // this class.
     try {
       Class.forName("sun.security.provider.PolicyFile");
+      Class.forName("java.util.ResourceBundle");
+      Class.forName("java.util.Date");
     } catch (Throwable t) {
       // NOP
     }
@@ -170,7 +172,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
       String recorderMethod, ClassLoader loader) {
     try {
       ClassReader cr = new ClassReader(originalBytes);
-      // The verifier in JDK7 requires accurate stackmaps, so we use
+      // The verifier in JDK7+ requires accurate stackmaps, so we use
       // COMPUTE_FRAMES.
       ClassWriter cw =
           new StaticClassWriter(cr, ClassWriter.COMPUTE_FRAMES, loader);

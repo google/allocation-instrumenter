@@ -110,7 +110,7 @@ class AllocationMethodAdapter extends MethodVisitor {
    */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass,
                          String recorderMethod) {
-    super(Opcodes.ASM4, mv);
+    super(Opcodes.ASM5, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
@@ -146,14 +146,14 @@ class AllocationMethodAdapter extends MethodVisitor {
     super.visitInsn(Opcodes.DUP);
     // -> stack: ... class class
     super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class",
-                          "getName", "()Ljava/lang/String;");
+        "getName", "()Ljava/lang/String;", false);
     // -> stack: ... class classNameDotted
     super.visitLdcInsn('.');
     // -> stack: ... class classNameDotted '.'
     super.visitLdcInsn('/');
     // -> stack: ... class classNameDotted '.' '/'
     super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String",
-                          "replace", "(CC)Ljava/lang/String;");
+        "replace", "(CC)Ljava/lang/String;", false);
     // -> stack: ... class className
   }
 
@@ -230,7 +230,7 @@ class AllocationMethodAdapter extends MethodVisitor {
    */
   @Override
   public void visitMethodInsn(int opcode, String owner, String name,
-                              String signature) {
+      String signature, boolean itf) {
     if (opcode == Opcodes.INVOKESTATIC &&
         // Array does its own native allocation.  Grr.
         owner.equals("java/lang/reflect/Array") &&
@@ -253,7 +253,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ILOAD, countIndex);
         // -> stack: ... class count
-        super.visitMethodInsn(opcode, owner, name, signature);
+        super.visitMethodInsn(opcode, owner, name, signature, itf);
         // -> stack: ... newobj
         super.visitInsn(Opcodes.DUP);
         // -> stack: ... newobj newobj
@@ -267,7 +267,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         super.visitInsn(Opcodes.SWAP);
         // -> stack: ... newobj count className newobj
         super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
-                              recorderMethod, RECORDER_SIGNATURE);
+            recorderMethod, RECORDER_SIGNATURE, false);
         // -> stack: ... newobj
         return;
       } else if (signature.equals("(Ljava/lang/Class;[I)Ljava/lang/Object;")){
@@ -293,7 +293,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ALOAD, dimsArrayIndex);
         // -> stack: ... class dimsArray
-        super.visitMethodInsn(opcode, owner, name, signature);
+        super.visitMethodInsn(opcode, owner, name, signature, itf);
         // -> stack: ... newobj
 
         super.visitInsn(Opcodes.DUP);
@@ -308,7 +308,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         super.visitInsn(Opcodes.SWAP);
         // -> stack: ... newobj product className newobj
         super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
-                              recorderMethod, RECORDER_SIGNATURE);
+            recorderMethod, RECORDER_SIGNATURE, false);
         // -> stack: ... newobj
         return;
       }
@@ -316,7 +316,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
     if (opcode == Opcodes.INVOKEVIRTUAL) {
       if ("clone".equals(name) && owner.startsWith("[")) {
-        super.visitMethodInsn(opcode, owner, name, signature);
+        super.visitMethodInsn(opcode, owner, name, signature, itf);
 
         int i = 0;
         while (i < owner.length()) {
@@ -348,18 +348,17 @@ class AllocationMethodAdapter extends MethodVisitor {
             "()Ljava/lang/Object;".equals(signature)) {
           super.visitInsn(Opcodes.DUP);
           // -> stack: ... Class Class
-          super.visitMethodInsn(opcode, owner, name, signature);
+          super.visitMethodInsn(opcode, owner, name, signature, itf);
           // -> stack: ... Class newobj
           super.visitInsn(Opcodes.DUP_X1);
           // -> stack: ... newobj Class newobj
-          super.visitMethodInsn(Opcodes.INVOKESTATIC,
-              recorderClass, recorderMethod,
-              CLASS_RECORDER_SIG);
+          super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
+                                recorderMethod, CLASS_RECORDER_SIG, false);
           // -> stack: ... newobj
           return;
         } else if ("java/lang/reflect/Constructor".equals(owner) &&
             "([Ljava/lang/Object;)Ljava/lang/Object;".equals(signature)) {
-          buildRecorderFromObject(opcode, owner, name, signature);
+          buildRecorderFromObject(opcode, owner, name, signature, itf);
           return;
         }
       }
@@ -367,7 +366,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
     if (opcode == Opcodes.INVOKESPECIAL) {
       if ("clone".equals(name) && "java/lang/Object".equals(owner)) {
-        buildRecorderFromObject(opcode, owner, name, signature);
+        buildRecorderFromObject(opcode, owner, name, signature, itf);
         return;
       } else if ("<init>".equals(name) && outstandingAllocs > 0) {
         // Tricky because superclass initializers mean there can be more calls
@@ -381,7 +380,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         // extra copy (and then discard it).
 
         dupStackElementBeforeSignatureArgs(signature);
-        super.visitMethodInsn(opcode, owner, name, signature);
+        super.visitMethodInsn(opcode, owner, name, signature, itf);
         super.visitLdcInsn(-1);
         super.visitInsn(Opcodes.SWAP);
         invokeRecordAllocation(owner);
@@ -390,15 +389,15 @@ class AllocationMethodAdapter extends MethodVisitor {
       }
     }
 
-    super.visitMethodInsn(opcode, owner, name, signature);
+    super.visitMethodInsn(opcode, owner, name, signature, itf);
   }
 
   // This is the instrumentation that occurs when there is no static
   // information about the class we are instantiating.  First we build the
   // object, then we get the class and invoke the recorder.
   private void buildRecorderFromObject(
-      int opcode, String owner, String name, String signature) {
-    super.visitMethodInsn(opcode, owner, name, signature);
+      int opcode, String owner, String name, String signature, boolean itf) {
+    super.visitMethodInsn(opcode, owner, name, signature, itf);
     // -> stack: ... newobj
     super.visitInsn(Opcodes.DUP);
     // -> stack: ... newobj newobj
@@ -406,16 +405,13 @@ class AllocationMethodAdapter extends MethodVisitor {
     // -> stack: ... newobj newobj newobj
     // We could be instantiating this class or a subclass, so we
     // have to get the class the hard way.
-    super.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-        "java/lang/Object",
-        "getClass",
-    "()Ljava/lang/Class;");
+    super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass",
+                          "()Ljava/lang/Class;", false);
     // -> stack: ... newobj newobj Class
     super.visitInsn(Opcodes.SWAP);
     // -> stack: ... newobj Class newobj
-    super.visitMethodInsn(Opcodes.INVOKESTATIC,
-        recorderClass, recorderMethod,
-        CLASS_RECORDER_SIG);
+    super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass, recorderMethod,
+                          CLASS_RECORDER_SIG, false);
     // -> stack: ... newobj
   }
 
