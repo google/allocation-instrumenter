@@ -19,6 +19,10 @@
 
   <target name="base_compile" depends="init" description="basic compile">
     <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
+      <!-- This is to make sure that we don't call the pre-Java 8
+           versions of the ASM APIs -->
+      <compilerarg value="-Xlint:deprecation" />
+      <compilerarg value="-Werror" />
       <classpath refid="AllocationInstrumenter.classpath"/>
     </javac>
   </target>
