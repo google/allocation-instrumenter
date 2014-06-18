@@ -15,7 +15,7 @@
   <description>java-allocation-instrumenter: A Java agent that rewrites bytecode to instrument allocation sites</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <projectAsmVersion>4.0</projectAsmVersion>
+    <projectAsmVersion>5.0.3</projectAsmVersion>
   </properties>
   <licenses>
     <license>
