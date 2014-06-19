@@ -3,7 +3,7 @@
   <groupId>com.google.code.java-allocation-instrumenter</groupId>
   <artifactId>java-allocation-instrumenter</artifactId>
   <packaging>jar</packaging>
-  <version>2.2-SNAPSHOT</version>
+  <version>8.0</version>
   <inceptionYear>2009</inceptionYear>
   <name>java-allocation-instrumenter</name>
   <parent>
@@ -71,7 +71,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>r06</version>
+      <version>17.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -149,32 +149,15 @@
           <show>public</show>
         </configuration>
       </plugin>
-      <!-- customize manifest -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Boot-Class-Path>./allocation.jar</Boot-Class-Path>
-              <Premain-Class>com.google.monitoring.runtime.instrumentation.AllocationInstrumenter</Premain-Class>
-              <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Can-Retransform-Classes>true</Can-Retransform-Classes>
-              <Main-Class>NotSuitableAsMain</Main-Class>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
       <!-- embed dependencies -->
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>jarjar-maven-plugin</artifactId>
-        <version>1.7</version>
+        <version>1.8</version>
         <executions>
           <execution>
             <id>embed-jars</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>jarjar</goal>
             </goals>
@@ -197,10 +180,40 @@
                   <pattern>com.google.common.**</pattern>
                   <result>com.google.monitoring.runtime.instrumentation.common.@0</result>
                 </rule>
+                <keep>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingCache</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingConcurrentHashMap</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ForwardingMap</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.collect.MapMaker</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.base.FunctionalEquivalence</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.base.PairwiseEquivalence</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.base.Supplier</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.base.Suppliers</pattern>
+		  <pattern>com.google.monitoring.runtime.instrumentation.common.primitives.Ints</pattern>
+                  <pattern>com.google.monitoring.runtime.instrumentation.asm.**</pattern>
+                  <pattern>com.google.monitoring.runtime.instrumentation.*</pattern>
+               </keep>
               </rules>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <!-- customize manifest -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Boot-Class-Path>./${project.artifactId}-${project.version}.${project.packaging}</Boot-Class-Path>
+              <Premain-Class>com.google.monitoring.runtime.instrumentation.AllocationInstrumenter</Premain-Class>
+              <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
+              <Main-Class>NotSuitableAsMain</Main-Class>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
   </build>
