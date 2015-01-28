@@ -59,6 +59,12 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    */
   private static final Object samplerPutAtomicityLock = new Object();
 
+  /**
+   * Whether to call the samplers when subclasses of the given class are
+   * constructed.
+   */
+  static boolean subclassesAlso;
+
   // Only for package access (specifically, AllocationInstrumenter)
   ConstructorInstrumenter() { }
 
@@ -184,15 +190,29 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
 
   /**
    * Bytecode is rewritten to invoke this method; it calls the sampler for
-   * the given class.  Note that it won't do anything if o is a subclass
-   * of the class that was supposed to be tracked.
+   * the given class.  Note that, unless the javaagent command line argument
+   * "subclassesAlso" is specified, it won't do anything if o is a subclass of
+   * the class that was supposed to be tracked.
    */
   @SuppressWarnings("unchecked")
   public static void invokeSamplers(Object o) {
-    List<ConstructorCallback<?>> samplers = samplerMap.get(o.getClass());
-    if (samplers != null) {
-      for (@SuppressWarnings("rawtypes") ConstructorCallback sampler : samplers) {
-        sampler.sample(o);
+    Class<?> currentClass = o.getClass();
+    while (currentClass != null) {
+      List<ConstructorCallback<?>> samplers = samplerMap.get(currentClass);
+      if (samplers != null) {
+        for (ConstructorCallback sampler : samplers) {
+          sampler.sample(o);
+        }
+        // Return once the first list of registered samplers are found and invoked.
+        return;
+      } else {
+        // When subclassesAlso is not specified (default), return if no
+        // samplers are registered with the type of the currently-constructed
+        // object.  Otherwise, traverse upward the class hierarchy.
+        if (!subclassesAlso) {
+          return;
+        }
+        currentClass = currentClass.getSuperclass();
       }
     }
   }
