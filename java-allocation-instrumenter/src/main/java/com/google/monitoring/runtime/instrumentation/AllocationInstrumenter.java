@@ -105,12 +105,16 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     }
 
     canRewriteBootstrap = true;
+    List<String> args = Arrays.asList(
+        agentArgs == null ? new String[0] : agentArgs.split(","));
 
+    // When "subclassesAlso" is specified, samplers are also invoked when
+    // SubclassOfA.<init> is called while only class A is specified to be
+    // instrumented.
+    ConstructorInstrumenter.subclassesAlso = args.contains("subclassesAlso");
     inst.addTransformer(new ConstructorInstrumenter(),
         inst.isRetransformClassesSupported());
 
-    List<String> args = Arrays.asList(
-        agentArgs == null ? new String[0] : agentArgs.split(","));
     if (!args.contains("manualOnly")) {
       bootstrap(inst);
     }
