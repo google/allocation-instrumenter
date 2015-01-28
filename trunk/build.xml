@@ -56,12 +56,12 @@
 	<attribute name="Main-Class" value="NotSuitableAsMain" />
       </manifest>
       <fileset dir="${build}"/>
-      <zipfileset src="lib/asm-5.0.2.jar" />
-      <zipfileset src="lib/asm-analysis-5.0.2.jar" />
-      <zipfileset src="lib/asm-commons-5.0.2.jar" />
-      <zipfileset src="lib/asm-tree-5.0.2.jar" />
-      <zipfileset src="lib/asm-util-5.0.2.jar" />
-      <zipfileset src="lib/asm-xml-5.0.2.jar" />
+      <zipfileset src="lib/asm-5.0.3.jar" />
+      <zipfileset src="lib/asm-analysis-5.0.3.jar" />
+      <zipfileset src="lib/asm-commons-5.0.3.jar" />
+      <zipfileset src="lib/asm-tree-5.0.3.jar" />
+      <zipfileset src="lib/asm-util-5.0.3.jar" />
+      <zipfileset src="lib/asm-xml-5.0.3.jar" />
       <zipfileset src="${dist}/collect.jar" />
       <rule pattern="org.objectweb.asm.**" result="com.google.monitoring.runtime.instrumentation.asm.@1"/>
       <rule pattern="com.google.common.**" result="com.google.monitoring.runtime.instrumentation.common.@0"/>
