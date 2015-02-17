@@ -3,7 +3,7 @@
   <groupId>com.google.code.java-allocation-instrumenter</groupId>
   <artifactId>java-allocation-instrumenter</artifactId>
   <packaging>jar</packaging>
-  <version>8.0</version>
+  <version>3.0-SNAPSHOT</version>
   <inceptionYear>2009</inceptionYear>
   <name>java-allocation-instrumenter</name>
   <parent>
@@ -11,7 +11,7 @@
     <artifactId>oss-parent</artifactId>
     <version>7</version>
   </parent>
-  <url>http://code.google.com/p/java-allocation-instrumenter/</url>
+  <url>https://github.com/google/allocation-instrumenter/</url>
   <description>java-allocation-instrumenter: A Java agent that rewrites bytecode to instrument allocation sites</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,9 +25,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://java-allocation-instrumenter.googlecode.com/svn/trunk/java-allocation-instrumenter</connection>
-    <developerConnection>scm:svn:https://java-allocation-instrumenter.googlecode.com/svn/trunk/java-allocation-instrumenter</developerConnection>
-    <url>http://java-allocation-instrumenter.codegoogle.com/svn/trunk/java-allocation-instrumenter</url>
+    <connection>scm:git:https://github.com/google/allocation-instrumenter.git</connection>
+    <developerConnection>scm:git:git@github.com:google/allocation-instrumenter.git</developerConnection>
+    <url>https://github.com/google/allocation-instrumenter/</url>
   </scm>
   <issueManagement>
     <system>Google Code Issue Tracking</system>
@@ -223,4 +223,36 @@
       <organization>Google Inc.</organization>
     </developer>
   </developers>
+  
+  <profiles>
+    <profile>
+      <id>jdk8</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <!-- Disable doclint under JDK 8 -->
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+          </plugin>
+        </plugins>
+      </reporting>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
