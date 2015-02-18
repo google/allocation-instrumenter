@@ -74,6 +74,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    *
    * @param c The class to be tracked
    * @param sampler the code to be invoked when an instance of c is constructed
+   * @throws UnmodifiableClassException if c cannot be modified.
    */
   public static void instrumentClass(Class<?> c, ConstructorCallback<?> sampler)
       throws UnmodifiableClassException {
@@ -120,6 +121,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    * ConstructorCallback method to the constructor.
    *
    * @param originalBytes the original <code>byte[]</code> code.
+   * @param classBeingRedefined the class being redefined.
    * @return the instrumented <code>byte[]</code> code.
    */
   public static byte[] instrument(
@@ -193,6 +195,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    * the given class.  Note that, unless the javaagent command line argument
    * "subclassesAlso" is specified, it won't do anything if o is a subclass of
    * the class that was supposed to be tracked.
+   * @param o the object passed to the samplers.
    */
   @SuppressWarnings("unchecked")
   public static void invokeSamplers(Object o) {
