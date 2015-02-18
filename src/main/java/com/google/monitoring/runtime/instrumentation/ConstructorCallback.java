@@ -32,9 +32,9 @@ package com.google.monitoring.runtime.instrumentation;
 public interface ConstructorCallback<T> {
   /**
    * When an object implementing interface
-   * <code>ConstructorCallback</code> is passed to {@link
-   * com.google.monitoring.runtime.allocation.AllocationInspector#
-   * addConstructorCallback(Class, ConstructorCallback)}, it will get executed
+   * <code>ConstructorCallback</code> is passed to
+   * {@link ConstructorInstrumenter#instrumentClass(Class, ConstructorCallback)},
+   * it will get executed
    * whenever a constructor for type T is invoked.
    *
    * @param newObj the new <code>Object</code> whose construction
