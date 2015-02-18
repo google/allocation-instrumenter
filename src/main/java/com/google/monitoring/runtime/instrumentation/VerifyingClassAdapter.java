@@ -27,10 +27,11 @@ import java.util.logging.Logger;
 
 /**
  * This is a class writer that gets used in place of the existing 
- * {@link ClassWriter}, and verifies properties of the class getting written.
+ * {@link org.objectweb.asm.ClassWriter},
+ * and verifies properties of the class getting written.
  * 
  * Currently, it only checks to see if the methods are of the correct length
- * for Java methods (<64K).
+ * for Java methods (&lt;64K).
  * 
  * @author jeremymanson@google.com (Jeremy Manson)
  */
@@ -69,8 +70,8 @@ public class VerifyingClassAdapter extends ClassVisitor {
   /**
    * {@inheritDoc}
    * 
-   * In addition, the returned {@link MethodVisitor} will throw an exception
-   * if the method is greater than 64K in length.
+   * In addition, the returned {@link org.objectweb.asm.MethodVisitor}
+   * will throw an exception if the method is greater than 64K in length.
    */
   @Override
   public MethodVisitor visitMethod(

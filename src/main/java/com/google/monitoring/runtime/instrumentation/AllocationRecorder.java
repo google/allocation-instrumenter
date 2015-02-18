@@ -254,6 +254,9 @@ public class AllocationRecorder {
 
   /**
    * Helper method to force recording; for unit tests only.
+   * @param count the number of objects being allocated.
+   * @param desc the descriptor of the class of the object being allocated.
+   * @param newObj the object being allocated.
    */
   public static void recordAllocationForceForTest(int count, String desc,
                                                   Object newObj) {
@@ -261,6 +264,13 @@ public class AllocationRecorder {
     recordAllocationForceForTestReal(count, desc, newObj, 2);
   }
 
+  /**
+   * Helper method to force recording; for unit tests only.
+   * @param count the number of objects being allocated.
+   * @param desc the descriptor of the class of the object being allocated.
+   * @param newObj the object being allocated.
+   * @param recurse A recursion count.
+   */
   public static void recordAllocationForceForTestReal(
       int count, String desc, Object newObj, int recurse) {
     if (recurse != 0) {

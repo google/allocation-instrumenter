@@ -170,6 +170,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
    * containing the recorder method to run.
    * @param recorderMethod the <code>String</code> name of the recorder method
    * to run.
+   * @param loader the <code>ClassLoader</code> for this class.
    * @return the instrumented <code>byte[]</code> code.
    */
   public static byte[] instrument(byte[] originalBytes, String recorderClass,
@@ -203,6 +204,9 @@ public class AllocationInstrumenter implements ClassFileTransformer {
    * @see #instrument(byte[], String, String, ClassLoader)
    * documentation for the 4-arg version.  This is a convenience
    * version that uses the recorder in this class.
+   * @param originalBytes The original version of the class.
+   * @param loader The ClassLoader of this class.
+   * @return the instrumented version of this class.
    */
   public static byte[] instrument(byte[] originalBytes, ClassLoader loader) {
     return instrument(
