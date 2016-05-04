@@ -19,7 +19,6 @@ package com.google.monitoring.runtime.instrumentation;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,11 +30,13 @@ import com.google.common.collect.MapMaker;
 /**
  * The logic for recording allocations, called from bytecode rewritten by
  * {@link AllocationInstrumenter}.
- * 
+ *
  * @author 
  * @author fischman@google.com (Ami Fischman)
  */
 public class AllocationRecorder {
+  private static final NullInstrumentation NULL_INSTRUMENTATION = new NullInstrumentation();
+
   static {
     // Sun's JVMs in 1.5.0_06 and 1.6.0{,_01} have a bug where calling
     // Instrumentation.getObjectSize() during JVM shutdown triggers a
@@ -49,7 +50,7 @@ public class AllocationRecorder {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        setInstrumentation(null);
+        setInstrumentation(NULL_INSTRUMENTATION);
       }
     });
   }
@@ -85,7 +86,7 @@ public class AllocationRecorder {
   private static final ThreadLocal<Boolean> recordingAllocation = new ThreadLocal<Boolean>();
 
   // Stores the object sizes for the last ~100000 encountered classes
-  private static final ForwardingMap<Class<?>, Long> classSizesMap = 
+  private static final ForwardingMap<Class<?>, Long> classSizesMap =
     new ForwardingMap<Class<?>, Long>() {
       private final ConcurrentMap<Class<?>, Long> map = new MapMaker()
           .weakKeys()
@@ -193,14 +194,14 @@ public class AllocationRecorder {
     if (isArray) {
       return instrumentation.getObjectSize(obj);
     }
-  
+
     Class<?> clazz = obj.getClass();
     Long classSize = classSizesMap.get(clazz);
     if (classSize == null) {
       classSize = instrumentation.getObjectSize(obj);
       classSizesMap.put(clazz, classSize);
     }
-  
+
     return classSize;
   }
 
@@ -229,26 +230,25 @@ public class AllocationRecorder {
     } else {
       recordingAllocation.set(Boolean.TRUE);
     }
-  
+
     // NB: This could be smaller if the defaultSampler were merged with the
     // optional samplers.  However, you don't need the optional samplers in
     // the common case, so I thought I'd save some space.
-    if (instrumentation != null) {
-      // calling getObjectSize() could be expensive,
-      // so make sure we do it only once per object
-      long objectSize = -1;
-  
-      Sampler[] samplers = additionalSamplers;
-      if (samplers != null) {
-        if (objectSize < 0) {
-          objectSize = getObjectSize(newObj, (count >= 0));
-        }
-        for (Sampler sampler : samplers) {
-          sampler.sampleAllocation(count, desc, newObj, objectSize);
-        }
+
+    // calling getObjectSize() could be expensive,
+    // so make sure we do it only once per object
+    long objectSize = -1;
+
+    Sampler[] samplers = additionalSamplers;
+    if (samplers != null) {
+      if (objectSize < 0) {
+        objectSize = getObjectSize(newObj, (count >= 0));
+      }
+      for (Sampler sampler : samplers) {
+        sampler.sampleAllocation(count, desc, newObj, objectSize);
       }
     }
-  
+
     recordingAllocation.set(Boolean.FALSE);
   }
 
