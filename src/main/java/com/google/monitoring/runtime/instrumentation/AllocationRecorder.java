@@ -18,7 +18,6 @@ package com.google.monitoring.runtime.instrumentation;
 
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +34,6 @@ import com.google.common.collect.MapMaker;
  * @author fischman@google.com (Ami Fischman)
  */
 public class AllocationRecorder {
-  private static final NullInstrumentation NULL_INSTRUMENTATION = new NullInstrumentation();
-
   static {
     // Sun's JVMs in 1.5.0_06 and 1.6.0{,_01} have a bug where calling
     // Instrumentation.getObjectSize() during JVM shutdown triggers a
@@ -50,7 +47,7 @@ public class AllocationRecorder {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        setInstrumentation(NULL_INSTRUMENTATION);
+        setInstrumentation(null);
       }
     });
   }
@@ -190,15 +187,15 @@ public class AllocationRecorder {
    * @param isArray indicates if the given object is an array.
    * @return the size of the given object.
    */
-  private static long getObjectSize(Object obj, boolean isArray) {
+  private static long getObjectSize(Object obj, boolean isArray, Instrumentation instr) {
     if (isArray) {
-      return instrumentation.getObjectSize(obj);
+      return instr.getObjectSize(obj);
     }
 
     Class<?> clazz = obj.getClass();
     Long classSize = classSizesMap.get(clazz);
     if (classSize == null) {
-      classSize = instrumentation.getObjectSize(obj);
+      classSize = instr.getObjectSize(obj);
       classSizesMap.put(clazz, classSize);
     }
 
@@ -235,17 +232,24 @@ public class AllocationRecorder {
     // optional samplers.  However, you don't need the optional samplers in
     // the common case, so I thought I'd save some space.
 
-    // calling getObjectSize() could be expensive,
-    // so make sure we do it only once per object
-    long objectSize = -1;
+    // Copy value into local variable to prevent NPE that occurs when
+    // instrumentation field is set to null by this class's shutdown hook
+    // after another thread passed the null check but has yet to call
+    // instrumentation.getObjectSize()
+    Instrumentation instr = instrumentation;
+    if (instr != null) {
+      // calling getObjectSize() could be expensive,
+      // so make sure we do it only once per object
+      long objectSize = -1;
 
-    Sampler[] samplers = additionalSamplers;
-    if (samplers != null) {
-      if (objectSize < 0) {
-        objectSize = getObjectSize(newObj, (count >= 0));
-      }
-      for (Sampler sampler : samplers) {
-        sampler.sampleAllocation(count, desc, newObj, objectSize);
+      Sampler[] samplers = additionalSamplers;
+      if (samplers != null) {
+        if (objectSize < 0) {
+          objectSize = getObjectSize(newObj, (count >= 0), instr);
+        }
+        for (Sampler sampler : samplers) {
+          sampler.sampleAllocation(count, desc, newObj, objectSize);
+        }
       }
     }
 
