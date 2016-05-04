@@ -185,6 +185,7 @@ public class AllocationRecorder {
    *
    * @param obj the object.
    * @param isArray indicates if the given object is an array.
+   * @param instr the instrumentation object to use for finding the object size
    * @return the size of the given object.
    */
   private static long getObjectSize(Object obj, boolean isArray, Instrumentation instr) {
