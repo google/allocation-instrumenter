@@ -551,14 +551,37 @@ class AllocationMethodAdapter extends MethodVisitor {
     // below we note the partial product of dimensions 1 to X-1 as productToX
     // (so productTo1 == 1 == no dimensions yet).  We denote by aref0 the
     // array reference at the current nesting level (the containing aref's [0]
-    // element).  If we hit a level whose arraylength is 0 there's no point
-    // continuing so we shortcut out.
+    // element).  If we hit a level whose arraylength is 0 or whose
+    // reference is null, there's no point continuing, so we shortcut
+    // out.
+
+    // This approach works pretty well when you create a new array with the
+    // newarray bytecodes.  You can also create a new array by cloning an
+    // existing array; an existing multidimensional array might have had some
+    // of its [0] elements nulled out.  We currently deal with this by bailing
+    // out, but arguably we should do something more principled (like calculate
+    // the size of the multidimensional array from scratch if you are using
+    // clone()).
+    // TODO(java-platform-team): Do something about modified multidimensional
+    // arrays and clone().
     Label zeroDimension = new Label();
     super.visitInsn(Opcodes.DUP); // -> stack: ... origaref aref0
     super.visitLdcInsn(1); // -> stack: ... origaref aref0 productTo1
     for (int i = 0; i < dimCount; ++i) {
       // pre: stack: ... origaref aref0 productToI
       super.visitInsn(Opcodes.SWAP); // -> stack: ... origaref productToI aref
+      super.visitInsn(Opcodes.DUP);
+
+      Label nonNullDimension = new Label();
+      // -> stack: ... origaref productToI aref aref
+      super.visitJumpInsn(Opcodes.IFNONNULL, nonNullDimension);
+      // -> stack: ... origaref productToI aref
+      super.visitInsn(Opcodes.SWAP);
+      // -> stack: ... origaref aref productToI
+      super.visitJumpInsn(Opcodes.GOTO, zeroDimension);
+      super.visitLabel(nonNullDimension);
+
+      // -> stack: ... origaref productToI aref
       super.visitInsn(Opcodes.DUP_X1);
       // -> stack: ... origaref aref0 productToI aref
       super.visitInsn(Opcodes.ARRAYLENGTH);
