@@ -72,7 +72,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <projectAsmVersion>5.0.3</projectAsmVersion>
+    <projectAsmVersion>5.2</projectAsmVersion>
     <gpg.skip>true</gpg.skip>
   </properties>
 
@@ -110,7 +110,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
+      <version>20.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
