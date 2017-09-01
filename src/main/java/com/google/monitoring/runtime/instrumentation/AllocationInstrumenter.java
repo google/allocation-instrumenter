@@ -161,7 +161,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
 
   /**
    * Given the bytes representing a class, go through all the bytecode in it and
-   * instrument any occurences of new/newarray/anewarray/multianewarray with
+   * instrument any occurrences of new/newarray/anewarray/multianewarray with
    * pre- and post-allocation hooks.  Even more fun, intercept calls to the
    * reflection API's Array.newInstance() and instrument those too.
    *
