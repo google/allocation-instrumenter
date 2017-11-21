@@ -59,7 +59,7 @@ public class VerifyingClassAdapter extends ClassVisitor {
    */
   public VerifyingClassAdapter(ClassWriter cw, byte [] original,
       String className) {
-    super(Opcodes.ASM5, cw);
+    super(Opcodes.ASM6, cw);
     state = State.UNKNOWN;
     message = "The class has not finished being examined";
     this.cw = cw;

@@ -36,7 +36,7 @@ class AllocationClassAdapter extends ClassVisitor {
 
   public AllocationClassAdapter(ClassVisitor cv, String recorderClass,
       String recorderMethod) {
-    super(Opcodes.ASM5, cv);
+    super(Opcodes.ASM6, cv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
