@@ -1,0 +1,53 @@
+package PACKAGE;
+
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
+import java.net.JarURLConnection;
+import java.util.jar.JarFile;
+import javax.annotation.Generated;
+
+/**
+ * Add the agent to the bootclasspath before invoking premain().
+ *
+ * <p>In order to rewrite classes that are loaded by the bootstrap class loader to point to
+ * agent-provided instrumentation, the agent needs to be loaded by the bootstrap class loader.
+ *
+ * <p>There are three ways of doing this. The first requires that we add "Boot-Class-Path: &lt;JAR file
+ * name&gt;" to the agent's manifest. That only works when we know the exact name of the output JAR.
+ * That's not the case in various environments. For example, Maven-released JARs often bake a
+ * version number into their JAR names. The second is to add the JAR to the bootclasspath on the
+ * command line, but that's awful, as well as unsupported in Java 9.
+ *
+ * <p>The third is to use Instrumentation#appendToBootstrapClassLoaderSearch, which works as
+ * advertised. We can dynamically determine the name of the JAR containing this class (i.e., the
+ * agent), and then add that JAR to the bootstrap class path. The problem with this approach is that
+ * the agent's premain class is loaded prior to our ability to call that function, so it can't do
+ * the things we need the agent to be in the bootstrap class path to do. One workaround for this is
+ * to create a class that does nothing but call appendToBootstrapClassLoaderSearch on the agent's
+ * JAR file, and then calls into the real premain function (like the one below). Rather than
+ * replicating this class for every agent we might write, we use generated code.
+ *
+ * <p>This file is pre-processed to include the correct name of the class being used as a premain
+ * before being compiled and integrated into the agent.
+ */
+@Generated(value = "GENERATOR")
+public class CLASS_NAMEBootstrap {
+  public static void premain(String agentArgs, Instrumentation inst) {
+    try {
+      // First, find the JAR file containing the agent and append it to the bootclasspath.
+      String resourceName = "PATH_TO_CLASS";
+      java.net.URL url = ClassLoader.getSystemResource(resourceName);
+      JarFile jarfile = ((JarURLConnection) url.openConnection()).getJarFile();
+      inst.appendToBootstrapClassLoaderSearch(jarfile);
+
+      // Now invoke the real premain. We do not require that the premain class be available at
+      // compile time.  Some agents bake it into the main JAR file.  We use reflection to
+      // invoke it.
+      Class<?> premainClass = Class.forName("PREMAIN_CLASS");
+      Method pm = premainClass.getDeclaredMethod("premain", String.class, Instrumentation.class);
+      pm.invoke(null, agentArgs, inst);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
