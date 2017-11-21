@@ -161,7 +161,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     public LocalVariablesSorter lvs = null;
     Class<?> cl;
     ConstructorMethodAdapter(MethodVisitor mv, Class<?> cl) {
-      super(Opcodes.ASM5, mv);
+      super(Opcodes.ASM6, mv);
       this.cl = cl;
     }
 
@@ -227,7 +227,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
   static class ConstructorClassAdapter extends ClassVisitor {
     Class<?> cl;
     public ConstructorClassAdapter(ClassVisitor cv, Class<?> cl) {
-      super(Opcodes.ASM5, cv);
+      super(Opcodes.ASM6, cv);
       this.cl = cl;
     }
 
