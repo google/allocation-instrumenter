@@ -123,10 +123,7 @@
   <build>
     <defaultGoal>package</defaultGoal>
     <plugins>
-<<<<<<< HEAD
       <!-- specify target Java version -->
-=======
->>>>>>> Fix bugs introduced by updating to ASM6.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
