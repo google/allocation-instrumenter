@@ -63,7 +63,6 @@ import java.io.IOException;
  * the same logic in a subclass.  The code here has been slightly
  * cleaned up for readability.
  *
- * @author 
  */
 class StaticClassWriter extends ClassWriter {
 
