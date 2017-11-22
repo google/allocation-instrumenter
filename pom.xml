@@ -123,7 +123,7 @@
   <build>
     <defaultGoal>package</defaultGoal>
     <plugins>
-      <!-- ensure java version -->
+      <!-- specify target Java version -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -190,18 +190,18 @@
       </plugin>
       <!-- preprocess bootstrap method -->
       <plugin>
-	<groupId>com.google.code.maven-replacer-plugin</groupId>
-	<artifactId>replacer</artifactId>
-	<version>1.5.3</version>
-	 <executions>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
           <execution>
             <phase>generate-sources</phase>
             <goals>
               <goal>replace</goal>
             </goals>
           </execution>
-         </executions>
-	 <configuration>
+        </executions>
+        <configuration>
           <file>${project.basedir}/src/main/java/com/google/monitoring/runtime/instrumentation/Bootstrap.java.in</file>
           <outputFile>${project.build.directory}/generated-sources/java/com/google/monitoring/runtime/instrumentation/AllocationInstrumenterBootstrap.java</outputFile>
           <replacements>
@@ -247,7 +247,49 @@
           </execution>
         </executions>
       </plugin>
-      <!-- embed dependencies -->
+      <!-- shade Guava and ASM; strip module-info file from ASM -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>shade</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <artifactSet>
+            <includes>
+              <include>org.ow2.asm:asm</include>
+              <include>org.ow2.asm:asm-analysis</include>
+              <include>org.ow2.asm:asm-commons</include>
+              <include>org.ow2.asm:asm-tree</include>
+              <include>org.ow2.asm:asm-util</include>
+              <include>org.ow2.asm:asm-xml</include>
+              <include>com.google.guava:guava</include>
+            </includes>
+	  </artifactSet>
+	  <filters>
+	    <filter>
+	      <artifact>*:*</artifact>
+	      <excludes>
+		<exclude>META-INF/module-info.class</exclude>
+	      </excludes>
+	    </filter>
+	  </filters>
+	  <relocations>
+	      <relocation>
+		<pattern>com.google.common.</pattern>
+		<shadedPattern>com.google.monitoring.runtime.instrumentation.common.</shadedPattern>
+	      </relocation>
+	      <relocation>
+		<pattern>org.objectweb.asm.</pattern>
+		<shadedPattern>com.google.monitoring.runtime.instrumentation.asm.</shadedPattern>
+	      </relocation>
+	    </relocations>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>jarjar-maven-plugin</artifactId>
@@ -260,24 +302,7 @@
               <goal>jarjar</goal>
             </goals>
             <configuration>
-              <includes>
-                <include>org.ow2.asm:asm</include>
-                <include>org.ow2.asm:asm-analysis</include>
-                <include>org.ow2.asm:asm-commons</include>
-                <include>org.ow2.asm:asm-tree</include>
-                <include>org.ow2.asm:asm-util</include>
-                <include>org.ow2.asm:asm-xml</include>
-                <include>com.google.guava:guava</include>
-              </includes>
               <rules>
-                <rule>
-                  <pattern>org.objectweb.asm.**</pattern>
-                  <result>com.google.monitoring.runtime.instrumentation.asm.@1</result>
-                </rule>
-                <rule>
-                  <pattern>com.google.common.**</pattern>
-                  <result>com.google.monitoring.runtime.instrumentation.common.@0</result>
-                </rule>
                 <keep>
                   <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingCache</pattern>
                   <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingConcurrentHashMap</pattern>
