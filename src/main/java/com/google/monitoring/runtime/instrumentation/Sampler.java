@@ -19,7 +19,6 @@ package com.google.monitoring.runtime.instrumentation;
 /**
  * This interface describes a function that is used to sample an allocation. 
  * 
- * @author 
  */
 public interface Sampler {
   /**

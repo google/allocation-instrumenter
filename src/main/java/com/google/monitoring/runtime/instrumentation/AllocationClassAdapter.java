@@ -27,8 +27,6 @@ import org.objectweb.asm.commons.JSRInlinerAdapter;
  * A <code>ClassVisitor</code> that processes methods with a
  * <code>AllocationMethodAdapter</code> to instrument heap allocations.
  *
- * @author 
- * @author fischman@google.com (Ami Fischman) (Original Author)
  */
 class AllocationClassAdapter extends ClassVisitor {
   private final String recorderClass;

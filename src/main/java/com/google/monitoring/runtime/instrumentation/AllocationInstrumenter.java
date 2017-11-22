@@ -36,8 +36,6 @@ import java.util.logging.Logger;
  * looks like it will be allocating heap memory allowing users to implement heap
  * profiling schemes.
  *
- * @author Ami Fischman
- * @author Jeremy Manson
  */
 public class AllocationInstrumenter implements ClassFileTransformer {
    static final Logger logger =

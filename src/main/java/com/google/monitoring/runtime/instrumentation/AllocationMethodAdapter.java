@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
  * to record the allocation being done for profiling.
  * Instruments bytecodes that allocate heap memory to call a recording hook.
  *
- * @author Ami Fischman
  */
 class AllocationMethodAdapter extends MethodVisitor {
   /**

@@ -33,7 +33,6 @@ import java.util.logging.Logger;
  * Currently, it only checks to see if the methods are of the correct length
  * for Java methods (&lt;64K).
  * 
- * @author 
  */
 public class VerifyingClassAdapter extends ClassVisitor {
   private static final Logger logger =
