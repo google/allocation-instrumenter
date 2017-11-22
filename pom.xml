@@ -123,6 +123,7 @@
   <build>
     <defaultGoal>package</defaultGoal>
     <plugins>
+      <!-- specify target Java version -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -187,78 +188,7 @@
           <show>public</show>
         </configuration>
       </plugin>
-      <!-- embed dependencies -->
-      <!-- <plugin> -->
-      <!--   <groupId>org.sonatype.plugins</groupId> -->
-      <!--   <artifactId>jarjar-maven-plugin</artifactId> -->
-      <!--   <version>1.9</version> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>embed-jars</id> -->
-      <!--       <phase>prepare-package</phase> -->
-      <!--       <goals> -->
-      <!--         <goal>jarjar</goal> -->
-      <!--       </goals> -->
-      <!--       <configuration> -->
-      <!--         <includes> -->
-      <!--           <include>org.ow2.asm:asm</include> -->
-      <!--           <include>org.ow2.asm:asm-analysis</include> -->
-      <!--           <include>org.ow2.asm:asm-commons</include> -->
-      <!--           <include>org.ow2.asm:asm-tree</include> -->
-      <!--           <include>org.ow2.asm:asm-util</include> -->
-      <!--           <include>org.ow2.asm:asm-xml</include> -->
-      <!--           <include>com.google.guava:guava</include> -->
-      <!--         </includes> -->
-      <!--         <rules> -->
-      <!--           <rule> -->
-      <!--             <pattern>org.objectweb.asm.**</pattern> -->
-      <!--             <result>com.google.monitoring.runtime.instrumentation.asm.@1</result> -->
-      <!--           </rule> -->
-      <!--           <rule> -->
-      <!--             <pattern>com.google.common.**</pattern> -->
-      <!--             <result>com.google.monitoring.runtime.instrumentation.common.@0</result> -->
-      <!--           </rule> -->
-      <!--           <keep> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingCache</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ComputingConcurrentHashMap</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.collect.ForwardingMap</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.collect.MapMaker</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.base.FunctionalEquivalence</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.base.PairwiseEquivalence</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.base.Supplier</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.base.Suppliers</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.common.primitives.Ints</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.asm.**</pattern> -->
-      <!--             <pattern>com.google.monitoring.runtime.instrumentation.*</pattern> -->
-      <!--          </keep> -->
-      <!--         </rules> -->
-      <!--       </configuration> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
-
-      <!-- <plugin> -->
-      <!--   <groupId>org.codehaus.mojo</groupId> -->
-      <!--   <artifactId>truezip-maven-plugin</artifactId> -->
-      <!--   <version>1.2</version> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>remove-a-file</id> -->
-      <!--       <goals> -->
-      <!--         <goal>remove</goal> -->
-      <!--       </goals> -->
-      <!--       <phase>prepare-package</phase> -->
-      <!--       <configuration> -->
-      <!--         <fileset> -->
-      <!--           <directory>target/java-allocation-instrumenter-3.0-SNAPSHOT.jar/META-INF/lib/asm.jar/META-INF</directory> -->
-      <!--           <includes> -->
-      <!--             <include>module-info.class</include> -->
-      <!--           </includes> -->
-      <!--         </fileset> -->
-      <!--       </configuration> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
+      <!-- shade Guava and ASM; strip module-info file from ASM -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -332,34 +262,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- <plugin> -->
-      <!-- 	<groupId>com.github.wvengen</groupId> -->
-      <!--   <artifactId>proguard-maven-plugin</artifactId> -->
-      <!--   <version>2.0.14</version> -->
-      <!-- 	<executions> -->
-      <!--     <execution> -->
-      <!--       <goals> -->
-      <!--         <goal>proguard</goal> -->
-      <!--       </goals> -->
-      <!--       <phase>package</phase> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!--   <configuration> -->
-      <!--     <obfuscate>false</obfuscate> -->
-      <!-- 	  <injar>${project.build.finalName}.jar</injar> -->
-      <!--     <outjar>${project.build.finalName}-small.jar</outjar> -->
-      <!-- 	  <options> -->
-      <!--       <option>-keep public class com.google.monitoring.runtime.instrumentation.*</option> -->
-      <!--     </options> -->
-      <!--     <outputDirectory>${project.build.directory}</outputDirectory> -->
-      <!--     <libs> -->
-      <!--       <lib>${java.home}/lib/rt.jar</lib> -->
-      <!--       <lib>${java.home}/lib/jsse.jar</lib> -->
-      <!--     </libs> -->
-      <!--     <attach>true</attach> -->
-      <!-- 	</configuration> -->
-      <!-- </plugin> -->
       <!-- customize manifest -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
