@@ -188,6 +188,65 @@
           <show>public</show>
         </configuration>
       </plugin>
+      <!-- preprocess bootstrap method -->
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <file>${project.basedir}/src/main/java/com/google/monitoring/runtime/instrumentation/Bootstrap.java.in</file>
+          <outputFile>${project.build.directory}/generated-sources/java/com/google/monitoring/runtime/instrumentation/AllocationInstrumenterBootstrap.java</outputFile>
+          <replacements>
+            <replacement>
+              <token>CLASS_NAME</token>
+              <value>AllocationInstrumenter</value>
+            </replacement>
+            <replacement>
+              <token>PACKAGE</token>
+              <value>com.google.monitoring.runtime.instrumentation</value>
+            </replacement>
+            <replacement>
+              <token>PATH_TO_CLASS</token>
+              <value>com/google/monitoring/runtime/instrumentation</value>
+            </replacement>
+            <replacement>
+              <token>PREMAIN_CLASS</token>
+              <value>com.google.monitoring.runtime.instrumentation.AllocationInstrumenter</value>
+            </replacement>
+            <replacement>
+              <token>GENERATOR</token>
+              <value>https://github.com/google/allocation-instrumenter/blob/master/pom.xml</value>
+            </replacement>
+          </replacements>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/java/</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- shade Guava and ASM; strip module-info file from ASM -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -270,8 +329,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Boot-Class-Path>./${project.artifactId}-${project.version}.${project.packaging}</Boot-Class-Path>
-              <Premain-Class>com.google.monitoring.runtime.instrumentation.AllocationInstrumenter</Premain-Class>
+              <Premain-Class>com.google.monitoring.runtime.instrumentation.AllocationInstrumenterBootstrap</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
               <Can-Retransform-Classes>true</Can-Retransform-Classes>
               <Main-Class>NotSuitableAsMain</Main-Class>
