@@ -30,8 +30,6 @@ import com.google.common.collect.MapMaker;
  * The logic for recording allocations, called from bytecode rewritten by
  * {@link AllocationInstrumenter}.
  *
- * @author jeremymanson@google.com (Jeremy Manson)
- * @author fischman@google.com (Ami Fischman)
  */
 public class AllocationRecorder {
   static {
