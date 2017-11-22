@@ -27,7 +27,6 @@ package com.google.monitoring.runtime.instrumentation;
  *
  * @param <T> The class that will be sampled with this ConstructorCallback
  *
- * @author Jeremy Manson
  */
 public interface ConstructorCallback<T> {
   /**

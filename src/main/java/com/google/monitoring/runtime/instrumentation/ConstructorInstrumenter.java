@@ -39,7 +39,6 @@ import java.util.logging.Logger;
  * by a javaagent; end-users will want to add {@link ConstructorCallback}s by
  * invoking {@link #instrumentClass(Class, ConstructorCallback)}.
  *
- * @author Jeremy Manson
  */
 public class ConstructorInstrumenter implements ClassFileTransformer {
   // Implementation details: uses the java.lang.instrument API to
