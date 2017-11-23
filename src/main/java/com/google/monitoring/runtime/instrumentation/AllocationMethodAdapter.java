@@ -147,13 +147,6 @@ class AllocationMethodAdapter extends MethodVisitor {
     super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class",
         "getName", "()Ljava/lang/String;", false);
     // -> stack: ... class classNameDotted
-    super.visitLdcInsn('.');
-    // -> stack: ... class classNameDotted '.'
-    super.visitLdcInsn('/');
-    // -> stack: ... class classNameDotted '.' '/'
-    super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String",
-        "replace", "(CC)Ljava/lang/String;", false);
-    // -> stack: ... class className
   }
 
   // Helper method to compute the product of an integer array and push it on
