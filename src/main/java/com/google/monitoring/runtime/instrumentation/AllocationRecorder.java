@@ -231,6 +231,10 @@ public class AllocationRecorder {
     // optional samplers.  However, you don't need the optional samplers in
     // the common case, so I thought I'd save some space.
 
+    if (count >= 0) {
+      desc = desc.replace('.', '/');
+    }
+
     // Copy value into local variable to prevent NPE that occurs when
     // instrumentation field is set to null by this class's shutdown hook
     // after another thread passed the null check but has yet to call
