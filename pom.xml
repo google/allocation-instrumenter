@@ -110,7 +110,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>20.0</version>
+      <version>23.5-android</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -259,6 +259,7 @@
           </execution>
         </executions>
         <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
           <artifactSet>
             <includes>
               <include>org.ow2.asm:asm</include>
@@ -269,25 +270,25 @@
               <include>org.ow2.asm:asm-xml</include>
               <include>com.google.guava:guava</include>
             </includes>
-	  </artifactSet>
-	  <filters>
-	    <filter>
-	      <artifact>*:*</artifact>
-	      <excludes>
-		<exclude>META-INF/module-info.class</exclude>
-	      </excludes>
-	    </filter>
-	  </filters>
-	  <relocations>
-	      <relocation>
-		<pattern>com.google.common.</pattern>
-		<shadedPattern>com.google.monitoring.runtime.instrumentation.common.</shadedPattern>
-	      </relocation>
-	      <relocation>
-		<pattern>org.objectweb.asm.</pattern>
-		<shadedPattern>com.google.monitoring.runtime.instrumentation.asm.</shadedPattern>
-	      </relocation>
-	    </relocations>
+          </artifactSet>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/module-info.class</exclude>
+              </excludes>
+            </filter>
+          </filters>
+          <relocations>
+            <relocation>
+              <pattern>com.google.common.</pattern>
+              <shadedPattern>com.google.monitoring.runtime.instrumentation.common.</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.objectweb.asm.</pattern>
+              <shadedPattern>com.google.monitoring.runtime.instrumentation.asm.</shadedPattern>
+            </relocation>
+          </relocations>
         </configuration>
       </plugin>
       <plugin>
