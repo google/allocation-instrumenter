@@ -16,14 +16,13 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.CodeSizeEvaluator;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This is a class writer that gets used in place of the existing 
