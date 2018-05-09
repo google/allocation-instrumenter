@@ -16,24 +16,26 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * A <code>MethodVisitor</code> that instruments all heap allocation bytecodes
  * to record the allocation being done for profiling.
  * Instruments bytecodes that allocate heap memory to call a recording hook.
- *
  */
 class AllocationMethodAdapter extends MethodVisitor {
+  private static final Logger logger =
+    Logger.getLogger(AllocationMethodAdapter.class.getName());
+
   /**
    * The signature string the recorder method must have.  The method must be
    * static, return void, and take as arguments:
@@ -87,7 +89,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
   private  List<VariableScope> getLocalScopes() {
     if (localScopes == null) {
-      localScopes = new LinkedList<VariableScope>();
+      localScopes = new ArrayList<>();
     }
     return localScopes;
   }
@@ -108,8 +110,8 @@ class AllocationMethodAdapter extends MethodVisitor {
    * A new AllocationMethodAdapter is created for each method that gets visited.
    */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass,
-                         String recorderMethod) {
-    super(Opcodes.ASM5, mv);
+      String recorderMethod) {
+    super(Opcodes.ASM6, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
@@ -129,8 +131,8 @@ class AllocationMethodAdapter extends MethodVisitor {
         invokeRecordAllocation(primitiveTypeNames[operand]);
         // -> stack: ... aref
       } else {
-        AllocationInstrumenter.logger.severe("NEWARRAY called with an invalid operand " +
-                      operand + ".  Not instrumenting this allocation!");
+        logger.severe("NEWARRAY called with an invalid operand " +
+            operand + ".  Not instrumenting this allocation!");
         super.visitIntInsn(opcode, operand);
       }
     } else {

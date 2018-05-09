@@ -16,13 +16,6 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.LocalVariablesSorter;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
@@ -32,6 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.LocalVariablesSorter;
 
 /**
  * Instruments bytecode by inserting a specified call in the
@@ -202,10 +201,17 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     while (currentClass != null) {
       List<ConstructorCallback<?>> samplers = samplerMap.get(currentClass);
       if (samplers != null) {
-        for (ConstructorCallback sampler : samplers) {
+        // Leave in the @SuppressWarnings, because we define -Werror,
+        // and infrastructure sometimes runs with all warnings turned
+        // on.  This would be a great place for a typesafe
+        // heterogeneous container, but that doesn't work with generic
+        // types.
+        for (@SuppressWarnings("rawtypes") ConstructorCallback sampler :
+             samplers) {
           sampler.sample(o);
         }
-        // Return once the first list of registered samplers are found and invoked.
+        // Return once the first list of registered samplers are found and
+        // invoked.
         return;
       } else {
         // When subclassesAlso is not specified (default), return if no

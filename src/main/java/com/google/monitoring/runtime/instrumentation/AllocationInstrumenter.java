@@ -16,10 +16,6 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
@@ -29,6 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 
 /**
  * Instruments bytecodes that allocate heap memory to call a recording hook.
@@ -38,8 +37,8 @@ import java.util.logging.Logger;
  *
  */
 public class AllocationInstrumenter implements ClassFileTransformer {
-   static final Logger logger =
-       Logger.getLogger(AllocationInstrumenter.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(AllocationInstrumenter.class.getName());
 
   // We can rewrite classes loaded by the bootstrap class loader
   // iff the agent is loaded by the bootstrap class loader.  It is

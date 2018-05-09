@@ -16,15 +16,13 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
-import java.lang.instrument.Instrumentation;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.MapMaker;
+import java.lang.instrument.Instrumentation;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * The logic for recording allocations, called from bytecode rewritten by
@@ -69,13 +67,6 @@ public class AllocationRecorder {
   // the field is volatile, so anyone who reads additionalSamplers
   // will get a consistent view of it.
   private static final Object samplerLock = new Object();
-
-  // List of packages that can add samplers.
-  private static final List<String> classNames = new ArrayList<String>();
-
-  static {
-    classNames.add("com.google.monitoring.runtime.");
-  }
 
   // Used for reentrancy checks
   private static final ThreadLocal<Boolean> recordingAllocation = new ThreadLocal<Boolean>();
@@ -221,15 +212,11 @@ public class AllocationRecorder {
    *   recorded.
    */
   public static void recordAllocation(int count, String desc, Object newObj) {
-    if (recordingAllocation.get() == Boolean.TRUE) {
+    if (Objects.equals(recordingAllocation.get(), Boolean.TRUE)) {
       return;
-    } else {
-      recordingAllocation.set(Boolean.TRUE);
     }
 
-    // NB: This could be smaller if the defaultSampler were merged with the
-    // optional samplers.  However, you don't need the optional samplers in
-    // the common case, so I thought I'd save some space.
+    recordingAllocation.set(Boolean.TRUE);
 
     if (count >= 0) {
       desc = desc.replace('.', '/');
@@ -239,6 +226,7 @@ public class AllocationRecorder {
     // instrumentation field is set to null by this class's shutdown hook
     // after another thread passed the null check but has yet to call
     // instrumentation.getObjectSize()
+    // See https://github.com/google/allocation-instrumenter/issues/15
     Instrumentation instr = instrumentation;
     if (instr != null) {
       // calling getObjectSize() could be expensive,
@@ -257,32 +245,5 @@ public class AllocationRecorder {
     }
 
     recordingAllocation.set(Boolean.FALSE);
-  }
-
-  /**
-   * Helper method to force recording; for unit tests only.
-   * @param count the number of objects being allocated.
-   * @param desc the descriptor of the class of the object being allocated.
-   * @param newObj the object being allocated.
-   */
-  public static void recordAllocationForceForTest(int count, String desc,
-                                                  Object newObj) {
-    // Make sure we get the right number of elided frames
-    recordAllocationForceForTestReal(count, desc, newObj, 2);
-  }
-
-  /**
-   * Helper method to force recording; for unit tests only.
-   * @param count the number of objects being allocated.
-   * @param desc the descriptor of the class of the object being allocated.
-   * @param newObj the object being allocated.
-   * @param recurse A recursion count.
-   */
-  public static void recordAllocationForceForTestReal(
-      int count, String desc, Object newObj, int recurse) {
-    if (recurse != 0) {
-      recordAllocationForceForTestReal(count, desc, newObj, recurse - 1);
-      return;
-    }
   }
 }
