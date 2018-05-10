@@ -30,15 +30,12 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 /**
- * Instruments bytecodes that allocate heap memory to call a recording hook.
- * This will add a static invocation to a recorder function to any bytecode that
- * looks like it will be allocating heap memory allowing users to implement heap
- * profiling schemes.
- *
+ * Instruments bytecodes that allocate heap memory to call a recording hook. This will add a static
+ * invocation to a recorder function to any bytecode that looks like it will be allocating heap
+ * memory allowing users to implement heap profiling schemes.
  */
 public class AllocationInstrumenter implements ClassFileTransformer {
-  private static final Logger logger =
-      Logger.getLogger(AllocationInstrumenter.class.getName());
+  private static final Logger logger = Logger.getLogger(AllocationInstrumenter.class.getName());
 
   // We can rewrite classes loaded by the bootstrap class loader
   // iff the agent is loaded by the bootstrap class loader.  It is
@@ -55,8 +52,8 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     //  won't be able to call agent methods).
     //  2. If it is java.lang.ThreadLocal, which can't be rewritten because the
     //  JVM depends on its structure.
-    if (((loader == null) && !canRewriteBootstrap) ||
-        className.startsWith("java/lang/ThreadLocal")) {
+    if (((loader == null) && !canRewriteBootstrap)
+        || className.startsWith("java/lang/ThreadLocal")) {
       return false;
     }
     // third_party/java/webwork/*/ognl.jar contains bad class files.  Ugh.
@@ -68,7 +65,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   }
 
   // No instantiating me except in premain() or in {@link JarClassTransformer}.
-  AllocationInstrumenter() { }
+  AllocationInstrumenter() {}
 
   public static void premain(String agentArgs, Instrumentation inst) {
     AllocationRecorder.setInstrumentation(inst);
@@ -86,8 +83,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     }
 
     if (!inst.isRetransformClassesSupported()) {
-      System.err.println("Some JDK classes are already loaded and " +
-          "will not be instrumented.");
+      System.err.println("Some JDK classes are already loaded and will not be instrumented.");
     }
 
     // Don't try to rewrite classes loaded by the bootstrap class
@@ -96,21 +92,18 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     if (AllocationRecorder.class.getClassLoader() != null) {
       canRewriteBootstrap = false;
       // The loggers aren't installed yet, so we use println.
-      System.err.println("Class loading breakage: " +
-          "Will not be able to instrument JDK classes");
+      System.err.println("Class loading breakage: Will not be able to instrument JDK classes");
       return;
     }
 
     canRewriteBootstrap = true;
-    List<String> args = Arrays.asList(
-        agentArgs == null ? new String[0] : agentArgs.split(","));
+    List<String> args = Arrays.asList(agentArgs == null ? new String[0] : agentArgs.split(","));
 
     // When "subclassesAlso" is specified, samplers are also invoked when
     // SubclassOfA.<init> is called while only class A is specified to be
     // instrumented.
     ConstructorInstrumenter.subclassesAlso = args.contains("subclassesAlso");
-    inst.addTransformer(new ConstructorInstrumenter(),
-        inst.isRetransformClassesSupported());
+    inst.addTransformer(new ConstructorInstrumenter(), inst.isRetransformClassesSupported());
 
     if (!args.contains("manualOnly")) {
       bootstrap(inst);
@@ -118,8 +111,7 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   }
 
   private static void bootstrap(Instrumentation inst) {
-    inst.addTransformer(new AllocationInstrumenter(),
-        inst.isRetransformClassesSupported());
+    inst.addTransformer(new AllocationInstrumenter(), inst.isRetransformClassesSupported());
 
     if (!canRewriteBootstrap) {
       return;
@@ -139,16 +131,17 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     try {
       inst.retransformClasses(classList.toArray(workaround));
     } catch (UnmodifiableClassException e) {
-      System.err.println("AllocationInstrumenter was unable to " +
-          "retransform early loaded classes.");
+      System.err.println("AllocationInstrumenter was unable to retransform early loaded classes.");
     }
-
-
   }
 
-  @Override public byte[] transform(
-      ClassLoader loader, String className, Class<?> classBeingRedefined,
-      ProtectionDomain protectionDomain, byte[] origBytes) {
+  @Override
+  public byte[] transform(
+      ClassLoader loader,
+      String className,
+      Class<?> classBeingRedefined,
+      ProtectionDomain protectionDomain,
+      byte[] origBytes) {
     if (!canRewriteClass(className, loader)) {
       return null;
     }
@@ -157,32 +150,27 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   }
 
   /**
-   * Given the bytes representing a class, go through all the bytecode in it and
-   * instrument any occurrences of new/newarray/anewarray/multianewarray with
-   * pre- and post-allocation hooks.  Even more fun, intercept calls to the
-   * reflection API's Array.newInstance() and instrument those too.
+   * Given the bytes representing a class, go through all the bytecode in it and instrument any
+   * occurrences of new/newarray/anewarray/multianewarray with pre- and post-allocation hooks. Even
+   * more fun, intercept calls to the reflection API's Array.newInstance() and instrument those too.
    *
    * @param originalBytes the original <code>byte[]</code> code.
-   * @param recorderClass the <code>String</code> internal name of the class
-   * containing the recorder method to run.
-   * @param recorderMethod the <code>String</code> name of the recorder method
-   * to run.
+   * @param recorderClass the <code>String</code> internal name of the class containing the recorder
+   *     method to run.
+   * @param recorderMethod the <code>String</code> name of the recorder method to run.
    * @param loader the <code>ClassLoader</code> for this class.
    * @return the instrumented <code>byte[]</code> code.
    */
-  public static byte[] instrument(byte[] originalBytes, String recorderClass,
-      String recorderMethod, ClassLoader loader) {
+  public static byte[] instrument(
+      byte[] originalBytes, String recorderClass, String recorderMethod, ClassLoader loader) {
     try {
       ClassReader cr = new ClassReader(originalBytes);
       // The verifier in JDK7+ requires accurate stackmaps, so we use
       // COMPUTE_FRAMES.
-      ClassWriter cw =
-          new StaticClassWriter(cr, ClassWriter.COMPUTE_FRAMES, loader);
+      ClassWriter cw = new StaticClassWriter(cr, ClassWriter.COMPUTE_FRAMES, loader);
 
-      VerifyingClassAdapter vcw =
-          new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
-      ClassVisitor adapter =
-          new AllocationClassAdapter(vcw, recorderClass, recorderMethod);
+      VerifyingClassAdapter vcw = new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
+      ClassVisitor adapter = new AllocationClassAdapter(vcw, recorderClass, recorderMethod);
 
       cr.accept(adapter, ClassReader.SKIP_FRAMES);
 
@@ -196,11 +184,9 @@ public class AllocationInstrumenter implements ClassFileTransformer {
     }
   }
 
-
   /**
-   * @see #instrument(byte[], String, String, ClassLoader)
-   * documentation for the 4-arg version.  This is a convenience
-   * version that uses the recorder in this class.
+   * @see #instrument(byte[], String, String, ClassLoader) documentation for the 4-arg version. This
+   *     is a convenience version that uses the recorder in this class.
    * @param originalBytes The original version of the class.
    * @param loader The ClassLoader of this class.
    * @return the instrumented version of this class.
