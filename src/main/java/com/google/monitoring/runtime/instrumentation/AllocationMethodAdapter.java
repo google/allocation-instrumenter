@@ -28,35 +28,33 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
 /**
- * A <code>MethodVisitor</code> that instruments all heap allocation bytecodes
- * to record the allocation being done for profiling.
- * Instruments bytecodes that allocate heap memory to call a recording hook.
+ * A <code>MethodVisitor</code> that instruments all heap allocation bytecodes to record the
+ * allocation being done for profiling. Instruments bytecodes that allocate heap memory to call a
+ * recording hook.
  */
 class AllocationMethodAdapter extends MethodVisitor {
-  private static final Logger logger =
-    Logger.getLogger(AllocationMethodAdapter.class.getName());
+  private static final Logger logger = Logger.getLogger(AllocationMethodAdapter.class.getName());
 
   /**
-   * The signature string the recorder method must have.  The method must be
-   * static, return void, and take as arguments:
+   * The signature string the recorder method must have. The method must be static, return void, and
+   * take as arguments:
+   *
    * <ol>
-   * <li>an int count of how many instances are being allocated.  -1 means a
-   * simple new to distinguish from a 1-element array.  0 shows up as a value
-   * here sometimes; one reason is toArray()-type methods that require an array
-   * type argument (see ArrayList.toArray() for example).</li>
-   * <li>a String descriptor of the class/primitive type being allocated.</li>
-   * <li>an Object reference to the just-allocated Object.</li>
+   *   <li>an int count of how many instances are being allocated. -1 means a simple new to
+   *       distinguish from a 1-element array. 0 shows up as a value here sometimes; one reason is
+   *       toArray()-type methods that require an array type argument (see ArrayList.toArray() for
+   *       example).
+   *   <li>a String descriptor of the class/primitive type being allocated.
+   *   <li>an Object reference to the just-allocated Object.
    * </ol>
    */
-  public static final String RECORDER_SIGNATURE =
-      "(ILjava/lang/String;Ljava/lang/Object;)V";
+  public static final String RECORDER_SIGNATURE = "(ILjava/lang/String;Ljava/lang/Object;)V";
 
   /**
-   * Like RECORDER_SIGNATURE, but for a method that extracts all of
-   * the information dynamically from a class.
+   * Like RECORDER_SIGNATURE, but for a method that extracts all of the information dynamically from
+   * a class.
    */
-  public static final String CLASS_RECORDER_SIG =
-      "(Ljava/lang/Class;Ljava/lang/Object;)V";
+  public static final String CLASS_RECORDER_SIG = "(Ljava/lang/Class;Ljava/lang/Object;)V";
 
   // A helper struct for describing the scope of temporary local variables we
   // create as part of the instrumentation.
@@ -65,17 +63,22 @@ class AllocationMethodAdapter extends MethodVisitor {
     public final Label start;
     public final Label end;
     public final String desc;
+
     public VariableScope(int index, Label start, Label end, String desc) {
-      this.index = index; this.start = start; this.end = end; this.desc = desc;
+      this.index = index;
+      this.start = start;
+      this.end = end;
+      this.desc = desc;
     }
   }
 
   // Dictionary of primitive type opcode to english name.
-  private static final String[] primitiveTypeNames = new String[] {
-    "INVALID0", "INVALID1", "INVALID2", "INVALID3",
-    "boolean", "char", "float", "double",
-    "byte", "short", "int", "long"
-  };
+  private static final String[] primitiveTypeNames =
+      new String[] {
+        "INVALID0", "INVALID1", "INVALID2", "INVALID3",
+        "boolean", "char", "float", "double",
+        "byte", "short", "int", "long"
+      };
 
   // To track the difference between <init>'s called as the result of a NEW
   // and <init>'s called because of superclass initialization, we track the
@@ -87,7 +90,7 @@ class AllocationMethodAdapter extends MethodVisitor {
   // ensure all labels have been resolved.  Allocated on-demand.
   private List<VariableScope> localScopes = null;
 
-  private  List<VariableScope> getLocalScopes() {
+  private List<VariableScope> getLocalScopes() {
     if (localScopes == null) {
       localScopes = new ArrayList<>();
     }
@@ -98,27 +101,23 @@ class AllocationMethodAdapter extends MethodVisitor {
   private final String recorderMethod;
 
   /**
-   * The LocalVariablesSorter used in this adapter.  Lame that it's public but
-   * the ASM architecture requires setting it from the outside after this
-   * AllocationMethodAdapter is fully constructed and the LocalVariablesSorter
-   * constructor requires a reference to this adapter.  The only setter of
-   * this should be AllocationClassAdapter.visitMethod().
+   * The LocalVariablesSorter used in this adapter. Lame that it's public but the ASM architecture
+   * requires setting it from the outside after this AllocationMethodAdapter is fully constructed
+   * and the LocalVariablesSorter constructor requires a reference to this adapter. The only setter
+   * of this should be AllocationClassAdapter.visitMethod().
    */
   public LocalVariablesSorter lvs = null;
 
-  /**
-   * A new AllocationMethodAdapter is created for each method that gets visited.
-   */
-  public AllocationMethodAdapter(MethodVisitor mv, String recorderClass,
-      String recorderMethod) {
+  /** A new AllocationMethodAdapter is created for each method that gets visited. */
+  public AllocationMethodAdapter(MethodVisitor mv, String recorderClass, String recorderMethod) {
     super(Opcodes.ASM6, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
 
   /**
-   * newarray shows up as an instruction taking an int operand (the primitive
-   * element type of the array) so we hook it here.
+   * newarray shows up as an instruction taking an int operand (the primitive element type of the
+   * array) so we hook it here.
    */
   @Override
   public void visitIntInsn(int opcode, int operand) {
@@ -131,8 +130,10 @@ class AllocationMethodAdapter extends MethodVisitor {
         invokeRecordAllocation(primitiveTypeNames[operand]);
         // -> stack: ... aref
       } else {
-        logger.severe("NEWARRAY called with an invalid operand " +
-            operand + ".  Not instrumenting this allocation!");
+        logger.severe(
+            "NEWARRAY called with an invalid operand "
+                + operand
+                + ".  Not instrumenting this allocation!");
         super.visitIntInsn(opcode, operand);
       }
     } else {
@@ -146,8 +147,8 @@ class AllocationMethodAdapter extends MethodVisitor {
   private void pushClassNameOnStack() {
     super.visitInsn(Opcodes.DUP);
     // -> stack: ... class class
-    super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Class",
-        "getName", "()Ljava/lang/String;", false);
+    super.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getName", "()Ljava/lang/String;", false);
     // -> stack: ... class classNameDotted
   }
 
@@ -212,23 +213,21 @@ class AllocationMethodAdapter extends MethodVisitor {
   }
 
   /**
-   * Reflection-based allocation (@see java.lang.reflect.Array#newInstance) is
-   * triggered with a static method call (INVOKESTATIC), so we hook it here.
-   * Class initialization is triggered with a constructor call (INVOKESPECIAL)
-   * so we hook that here too as a proxy for the new bytecode which leaves an
-   * uninitialized object on the stack that we're not allowed to touch.
-   * {@link java.lang.Object#clone} is also a call to INVOKESPECIAL,
-   * and is hooked here.  {@link java.lang.Class#newInstance} and
-   * {@link java.lang.reflect.Constructor#newInstance} are both
+   * Reflection-based allocation (@see java.lang.reflect.Array#newInstance) is triggered with a
+   * static method call (INVOKESTATIC), so we hook it here. Class initialization is triggered with a
+   * constructor call (INVOKESPECIAL) so we hook that here too as a proxy for the new bytecode which
+   * leaves an uninitialized object on the stack that we're not allowed to touch. {@link
+   * java.lang.Object#clone} is also a call to INVOKESPECIAL, and is hooked here. {@link
+   * java.lang.Class#newInstance} and {@link java.lang.reflect.Constructor#newInstance} are both
    * INVOKEVIRTUAL calls, so they are hooked here, as well.
    */
   @Override
-  public void visitMethodInsn(int opcode, String owner, String name,
-      String signature, boolean itf) {
-    if (opcode == Opcodes.INVOKESTATIC &&
+  public void visitMethodInsn(
+      int opcode, String owner, String name, String signature, boolean itf) {
+    if (opcode == Opcodes.INVOKESTATIC
         // Array does its own native allocation.  Grr.
-        owner.equals("java/lang/reflect/Array") &&
-        name.equals("newInstance")) {
+        && owner.equals("java/lang/reflect/Array")
+        && name.equals("newInstance")) {
       if (signature.equals("(Ljava/lang/Class;I)Ljava/lang/Object;")) {
 
         Label beginScopeLabel = new Label();
@@ -241,8 +240,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... class
         pushClassNameOnStack();
         // -> stack: ... class className
-        int typeNameIndex =
-          newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
+        int typeNameIndex = newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
         super.visitVarInsn(Opcodes.ASTORE, typeNameIndex);
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ILOAD, countIndex);
@@ -260,11 +258,11 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... newobj count newobj className
         super.visitInsn(Opcodes.SWAP);
         // -> stack: ... newobj count className newobj
-        super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
-            recorderMethod, RECORDER_SIGNATURE, false);
+        super.visitMethodInsn(
+            Opcodes.INVOKESTATIC, recorderClass, recorderMethod, RECORDER_SIGNATURE, false);
         // -> stack: ... newobj
         return;
-      } else if (signature.equals("(Ljava/lang/Class;[I)Ljava/lang/Object;")){
+      } else if (signature.equals("(Ljava/lang/Class;[I)Ljava/lang/Object;")) {
         Label beginScopeLabel = new Label();
         Label endScopeLabel = new Label();
         super.visitLabel(beginScopeLabel);
@@ -281,8 +279,7 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... class
         pushClassNameOnStack();
         // -> stack: ... class className
-        int typeNameIndex =
-          newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
+        int typeNameIndex = newLocal("Ljava/lang/String;", beginScopeLabel, endScopeLabel);
         super.visitVarInsn(Opcodes.ASTORE, typeNameIndex);
         // -> stack: ... class
         super.visitVarInsn(Opcodes.ALOAD, dimsArrayIndex);
@@ -301,8 +298,8 @@ class AllocationMethodAdapter extends MethodVisitor {
         // -> stack: ... newobj product newobj className
         super.visitInsn(Opcodes.SWAP);
         // -> stack: ... newobj product className newobj
-        super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
-            recorderMethod, RECORDER_SIGNATURE, false);
+        super.visitMethodInsn(
+            Opcodes.INVOKESTATIC, recorderClass, recorderMethod, RECORDER_SIGNATURE, false);
         // -> stack: ... newobj
         return;
       }
@@ -338,20 +335,19 @@ class AllocationMethodAdapter extends MethodVisitor {
         }
         return;
       } else if ("newInstance".equals(name)) {
-        if ("java/lang/Class".equals(owner) &&
-            "()Ljava/lang/Object;".equals(signature)) {
+        if ("java/lang/Class".equals(owner) && "()Ljava/lang/Object;".equals(signature)) {
           super.visitInsn(Opcodes.DUP);
           // -> stack: ... Class Class
           super.visitMethodInsn(opcode, owner, name, signature, itf);
           // -> stack: ... Class newobj
           super.visitInsn(Opcodes.DUP_X1);
           // -> stack: ... newobj Class newobj
-          super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass,
-                                recorderMethod, CLASS_RECORDER_SIG, false);
+          super.visitMethodInsn(
+              Opcodes.INVOKESTATIC, recorderClass, recorderMethod, CLASS_RECORDER_SIG, false);
           // -> stack: ... newobj
           return;
-        } else if ("java/lang/reflect/Constructor".equals(owner) &&
-            "([Ljava/lang/Object;)Ljava/lang/Object;".equals(signature)) {
+        } else if ("java/lang/reflect/Constructor".equals(owner)
+            && "([Ljava/lang/Object;)Ljava/lang/Object;".equals(signature)) {
           buildRecorderFromObject(opcode, owner, name, signature, itf);
           return;
         }
@@ -399,13 +395,13 @@ class AllocationMethodAdapter extends MethodVisitor {
     // -> stack: ... newobj newobj newobj
     // We could be instantiating this class or a subclass, so we
     // have to get the class the hard way.
-    super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass",
-                          "()Ljava/lang/Class;", false);
+    super.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false);
     // -> stack: ... newobj newobj Class
     super.visitInsn(Opcodes.SWAP);
     // -> stack: ... newobj Class newobj
-    super.visitMethodInsn(Opcodes.INVOKESTATIC, recorderClass, recorderMethod,
-                          CLASS_RECORDER_SIG, false);
+    super.visitMethodInsn(
+        Opcodes.INVOKESTATIC, recorderClass, recorderMethod, CLASS_RECORDER_SIG, false);
     // -> stack: ... newobj
   }
 
@@ -440,10 +436,9 @@ class AllocationMethodAdapter extends MethodVisitor {
   }
 
   /**
-   * new and anewarray bytecodes take a String operand for the type of
-   * the object or array element so we hook them here.  Note that new doesn't
-   * actually result in any instrumentation here; we just do a bit of
-   * book-keeping and do the instrumentation following the constructor call
+   * new and anewarray bytecodes take a String operand for the type of the object or array element
+   * so we hook them here. Note that new doesn't actually result in any instrumentation here; we
+   * just do a bit of book-keeping and do the instrumentation following the constructor call
    * (because we're not allowed to touch the object until it is initialized).
    */
   @Override
@@ -465,23 +460,22 @@ class AllocationMethodAdapter extends MethodVisitor {
   }
 
   /**
-   * Called by the ASM framework once the class is done being visited to
-   * compute stack & local variable count maximums.
+   * Called by the ASM framework once the class is done being visited to compute stack & local
+   * variable count maximums.
    */
   @Override
   public void visitMaxs(int maxStack, int maxLocals) {
     if (localScopes != null) {
       for (VariableScope scope : localScopes) {
-        super.visitLocalVariable("xxxxx$" + scope.index, scope.desc, null,
-            scope.start, scope.end, scope.index);
+        super.visitLocalVariable(
+            "xxxxx$" + scope.index, scope.desc, null, scope.start, scope.end, scope.index);
       }
     }
     super.visitMaxs(maxStack, maxLocals);
   }
 
   // Helper method to allocate a new local variable and account for its scope.
-  private int newLocal(Type type, String typeDesc,
-      Label begin, Label end) {
+  private int newLocal(Type type, String typeDesc, Label begin, Label end) {
     int newVar = lvs.newLocal(type);
     getLocalScopes().add(new VariableScope(newVar, begin, end, typeDesc));
     return newVar;
@@ -493,12 +487,12 @@ class AllocationMethodAdapter extends MethodVisitor {
   private int newLocal(String typeDescriptor, Label begin, Label end) {
     return newLocal(Type.getType(typeDescriptor), typeDescriptor, begin, end);
   }
+
   private int newLocal(Type type, Label begin, Label end) {
     return newLocal(type, type.getDescriptor(), begin, end);
   }
 
-  private static final Pattern namePattern =
-      Pattern.compile("^\\[*L([^;]+);$");
+  private static final Pattern namePattern = Pattern.compile("^\\[*L([^;]+);$");
 
   // Helper method to actually invoke the recorder function for an allocation
   // event.
@@ -516,16 +510,15 @@ class AllocationMethodAdapter extends MethodVisitor {
     // -> stack: ... newobj count newobj typename
     super.visitInsn(Opcodes.SWAP);
     // -> stack: ... newobj count typename newobj
-    super.visitMethodInsn(Opcodes.INVOKESTATIC,
-        recorderClass, recorderMethod, RECORDER_SIGNATURE, false);
+    super.visitMethodInsn(
+        Opcodes.INVOKESTATIC, recorderClass, recorderMethod, RECORDER_SIGNATURE, false);
     // -> stack: ... newobj
   }
 
   /**
-   * multianewarray gets its very own visit method in the ASM framework, so we
-   * hook it here.  This bytecode is different from most in that it consumes a
-   * variable number of stack elements during execution.  The number of stack
-   * elements consumed is specified by the dimCount operand.
+   * multianewarray gets its very own visit method in the ASM framework, so we hook it here. This
+   * bytecode is different from most in that it consumes a variable number of stack elements during
+   * execution. The number of stack elements consumed is specified by the dimCount operand.
    */
   @Override
   public void visitMultiANewArrayInsn(String typeName, int dimCount) {

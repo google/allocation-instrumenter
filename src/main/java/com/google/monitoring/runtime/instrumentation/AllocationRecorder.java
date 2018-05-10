@@ -25,9 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * The logic for recording allocations, called from bytecode rewritten by
- * {@link AllocationInstrumenter}.
- *
+ * The logic for recording allocations, called from bytecode rewritten by {@link
+ * AllocationInstrumenter}.
  */
 public class AllocationRecorder {
   static {
@@ -40,12 +39,14 @@ public class AllocationRecorder {
     // recordAllocation()) see the updated value; we could do more
     // synchronization but it's not clear that it'd be worth it, given the
     // ambiguity of the bug we're working around in the first place.
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        setInstrumentation(null);
-      }
-    });
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread() {
+              @Override
+              public void run() {
+                setInstrumentation(null);
+              }
+            });
   }
 
   // See the comment above the addShutdownHook in the static block above
@@ -61,7 +62,7 @@ public class AllocationRecorder {
   }
 
   // Mostly because, yes, arrays are faster than collections.
-  private static volatile Sampler [] additionalSamplers;
+  private static volatile Sampler[] additionalSamplers;
 
   // Protects mutations of additionalSamplers.  Reads are okay because
   // the field is volatile, so anyone who reads additionalSamplers
@@ -73,65 +74,64 @@ public class AllocationRecorder {
 
   // Stores the object sizes for the last ~100000 encountered classes
   private static final ForwardingMap<Class<?>, Long> classSizesMap =
-    new ForwardingMap<Class<?>, Long>() {
-      private final ConcurrentMap<Class<?>, Long> map = new MapMaker()
-          .weakKeys()
-          .makeMap();
+      new ForwardingMap<Class<?>, Long>() {
+        private final ConcurrentMap<Class<?>, Long> map = new MapMaker().weakKeys().makeMap();
 
-      @Override public Map<Class<?>, Long> delegate() {
-        return map;
-      }
-
-      // The approximate maximum size of the map
-      private static final int MAX_SIZE = 100000;
-
-      // The approximate current size of the map; since this is not an AtomicInteger
-      // and since we do not synchronize the updates to this field, it will only be
-      // an approximate size of the map; it's good enough for our purposes though,
-      // and not synchronizing the updates saves us some time
-      private int approximateSize = 0;
-
-      @Override
-      public Long put(Class<?> key, Long value) {
-        // if we have too many elements, delete about 10% of them
-        // this is expensive, but needs to be done to keep the map bounded
-        // we also need to randomize the elements we delete: if we remove the same
-        // elements all the time, we might end up adding them back to the map
-        // immediately after, and then remove them again, then add them back, etc.
-        // which will cause this expensive code to be executed too often
-        if (approximateSize >= MAX_SIZE) {
-          for (Iterator<Class<?>> it = keySet().iterator(); it.hasNext(); ) {
-            it.next();
-            if (Math.random() < 0.1) {
-              it.remove();
-            }
-          }
-
-          // get the exact size; another expensive call, but we need to correct
-          // approximateSize every once in a while, or the difference between
-          // approximateSize and the actual size might become significant over time;
-          // the other solution is synchronizing every time we update approximateSize,
-          // which seems even more expensive
-          approximateSize = size();
+        @Override
+        public Map<Class<?>, Long> delegate() {
+          return map;
         }
 
-        approximateSize++;
-        return super.put(key, value);
-    }
-  };
+        // The approximate maximum size of the map
+        private static final int MAX_SIZE = 100000;
+
+        // The approximate current size of the map; since this is not an AtomicInteger
+        // and since we do not synchronize the updates to this field, it will only be
+        // an approximate size of the map; it's good enough for our purposes though,
+        // and not synchronizing the updates saves us some time
+        private int approximateSize = 0;
+
+        @Override
+        public Long put(Class<?> key, Long value) {
+          // if we have too many elements, delete about 10% of them
+          // this is expensive, but needs to be done to keep the map bounded
+          // we also need to randomize the elements we delete: if we remove the same
+          // elements all the time, we might end up adding them back to the map
+          // immediately after, and then remove them again, then add them back, etc.
+          // which will cause this expensive code to be executed too often
+          if (approximateSize >= MAX_SIZE) {
+            for (Iterator<Class<?>> it = keySet().iterator(); it.hasNext(); ) {
+              it.next();
+              if (Math.random() < 0.1) {
+                it.remove();
+              }
+            }
+
+            // get the exact size; another expensive call, but we need to correct
+            // approximateSize every once in a while, or the difference between
+            // approximateSize and the actual size might become significant over time;
+            // the other solution is synchronizing every time we update approximateSize,
+            // which seems even more expensive
+            approximateSize = size();
+          }
+
+          approximateSize++;
+          return super.put(key, value);
+        }
+      };
 
   /**
-   * Adds a {@link Sampler} that will get run <b>every time an allocation is
-   * performed from Java code</b>.  Use this with <b>extreme</b> judiciousness!
+   * Adds a {@link Sampler} that will get run <b>every time an allocation is performed from Java
+   * code</b>. Use this with <b>extreme</b> judiciousness!
    *
-   * @param sampler  The sampler to add.
+   * @param sampler The sampler to add.
    */
   public static void addSampler(Sampler sampler) {
     synchronized (samplerLock) {
       Sampler[] samplers = additionalSamplers;
       /* create a new list of samplers from the old, adding this sampler */
       if (samplers != null) {
-        Sampler [] newSamplers = new Sampler[samplers.length + 1];
+        Sampler[] newSamplers = new Sampler[samplers.length + 1];
         System.arraycopy(samplers, 0, newSamplers, 0, samplers.length);
         newSamplers[samplers.length] = sampler;
         additionalSamplers = newSamplers;
@@ -146,7 +146,7 @@ public class AllocationRecorder {
   /**
    * Removes the given {@link Sampler}.
    *
-   * @param sampler  The sampler to remove.
+   * @param sampler The sampler to remove.
    */
   public static void removeSampler(Sampler sampler) {
     synchronized (samplerLock) {
@@ -169,8 +169,8 @@ public class AllocationRecorder {
   }
 
   /**
-   * Returns the size of the given object. If the object is not an array, we
-   * check the cache first, and update it as necessary.
+   * Returns the size of the given object. If the object is not an array, we check the cache first,
+   * and update it as necessary.
    *
    * @param obj the object.
    * @param isArray indicates if the given object is an array.
@@ -200,16 +200,12 @@ public class AllocationRecorder {
   }
 
   /**
-   * Records the allocation.  This method is invoked on every allocation
-   * performed by the system.
+   * Records the allocation. This method is invoked on every allocation performed by the system.
    *
-   * @param count the count of how many instances are being
-   *   allocated, if an array is being allocated.  If an array is not being
-   *   allocated, then this value will be -1.
-   * @param desc the descriptor of the class/primitive type
-   *   being allocated.
-   * @param newObj the new <code>Object</code> whose allocation is being
-   *   recorded.
+   * @param count the count of how many instances are being allocated, if an array is being
+   *     allocated. If an array is not being allocated, then this value will be -1.
+   * @param desc the descriptor of the class/primitive type being allocated.
+   * @param newObj the new <code>Object</code> whose allocation is being recorded.
    */
   public static void recordAllocation(int count, String desc, Object newObj) {
     if (Objects.equals(recordingAllocation.get(), Boolean.TRUE)) {

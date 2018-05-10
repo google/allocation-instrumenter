@@ -17,30 +17,23 @@
 package com.google.monitoring.runtime.instrumentation;
 
 /**
- * This interface describes a function that is used to sample a
- * constructor.  It is intended to be invoked every time a constructor
- * for class T is invoked.  This will not be invoked when subclasses of
- * T are instantiated.
+ * This interface describes a function that is used to sample a constructor. It is intended to be
+ * invoked every time a constructor for class T is invoked. This will not be invoked when subclasses
+ * of T are instantiated.
  *
- * This mechanism works independently of whether the class is part of the
- * JDK core library.
+ * <p>This mechanism works independently of whether the class is part of the JDK core library.
  *
  * @param <T> The class that will be sampled with this ConstructorCallback
- *
  */
 public interface ConstructorCallback<T> {
   /**
-   * When an object implementing interface
-   * <code>ConstructorCallback</code> is passed to
-   * {@link ConstructorInstrumenter#instrumentClass(Class, ConstructorCallback)},
-   * it will get executed
+   * When an object implementing interface <code>ConstructorCallback</code> is passed to {@link
+   * ConstructorInstrumenter#instrumentClass(Class, ConstructorCallback)}, it will get executed
    * whenever a constructor for type T is invoked.
    *
-   * @param newObj the new <code>Object</code> whose construction
-   *     we're recording.  The object is not fully constructed; any
-   *     references to this object that are stored in this callback are
-   *     subject to the memory model constraints related to such
-   *     objects.
+   * @param newObj the new <code>Object</code> whose construction we're recording. The object is not
+   *     fully constructed; any references to this object that are stored in this callback are
+   *     subject to the memory model constraints related to such objects.
    */
   public void sample(T newObj);
 }
