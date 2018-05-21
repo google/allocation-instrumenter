@@ -63,11 +63,15 @@ import java.io.IOException;
  * the same logic in a subclass.  The code here has been slightly
  * cleaned up for readability.
  *
+ * @author 
  */
-class StaticClassWriter extends ClassWriter {
+public class StaticClassWriter extends ClassWriter {
 
   /* The classloader that we use to look for the unloaded class */
   private final ClassLoader classLoader;
+
+  /* Whether to always load class data statically. */
+  private boolean alwaysStatic;
 
   /**
    * {@inheritDoc}
@@ -77,24 +81,41 @@ class StaticClassWriter extends ClassWriter {
       ClassReader classReader, int flags, ClassLoader classLoader) {
     super(classReader, flags);
     this.classLoader = classLoader;
+    this.alwaysStatic = false;
   }
+
+  /**
+   * {@inheritDoc}
+   * @param classLoader the class loader that loaded this class
+   * @param alwaysStatic whether to always load class data statically
+   */
+  public StaticClassWriter(
+      ClassReader classReader, int flags, ClassLoader classLoader,
+      boolean alwaysStatic) {
+    super(classReader, flags);
+    this.classLoader = classLoader;
+    this.alwaysStatic = alwaysStatic;
+  }
+
 
   /**
    * {@inheritDoc}
    */
   @Override protected String getCommonSuperClass(
       final String type1, final String type2) {
-    try {
-      return super.getCommonSuperClass(type1, type2);
-    } catch (Throwable e) {
-      // Try something else...
+    if (!alwaysStatic) {
+      try {
+        return super.getCommonSuperClass(type1, type2);
+      } catch (Throwable e) {
+        // Try something else...
+      }
     }
     // Exactly the same as in ClassWriter, but gets the superclass
     // directly from the class file.
     ClassInfo ci1, ci2;
     try {
-      ci1 = new ClassInfo(type1, classLoader);
-      ci2 = new ClassInfo(type2, classLoader);
+      ci1 = new ClassInfo(type1, classLoader, alwaysStatic);
+      ci2 = new ClassInfo(type2, classLoader, alwaysStatic);
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -129,27 +150,31 @@ class StaticClassWriter extends ClassWriter {
     private final boolean isInterface;
     private final String superClass;
     private final String[] interfaces;
+    private final boolean alwaysStatic;
 
-    public ClassInfo(String type, ClassLoader loader) {
-      Class<?> cls = null;
-      // First, see if we can extract the information from the class...
-      try {
-        cls = Class.forName(type);
-      } catch (Exception e) {
-        // failover...
-      }
-
-      if (cls != null) {
-        this.type = Type.getType(cls);
-        this.loader = loader;
-        this.isInterface = cls.isInterface();
-        this.superClass = cls.getSuperclass().getName();
-        Class[] ifs = cls.getInterfaces();
-        this.interfaces = new String[ifs.length];
-        for (int i = 0; i < ifs.length; i++) {
-          this.interfaces[i] = ifs[i].getName();
+    public ClassInfo(String type, ClassLoader loader, boolean alwaysStatic) {
+      this.alwaysStatic = alwaysStatic;
+      if (!alwaysStatic) {
+        Class cls = null;
+        // First, see if we can extract the information from the class...
+        try {
+          cls = Class.forName(type);
+        } catch (Exception e) {
+          // failover...
         }
-        return;
+
+        if (cls != null) {
+          this.type = Type.getType(cls);
+          this.loader = loader;
+          this.isInterface = cls.isInterface();
+          this.superClass = cls.getSuperclass().getName();
+          Class[] ifs = cls.getInterfaces();
+          this.interfaces = new String[ifs.length];
+          for (int i = 0; i < ifs.length; i++) {
+            this.interfaces[i] = ifs[i].getName();
+          }
+          return;
+        }
       }
 
       // The class isn't loaded.  Try to get the class file, and
@@ -211,7 +236,7 @@ class StaticClassWriter extends ClassWriter {
       if (superClass == null) {
         return null;
       }
-      return new ClassInfo(superClass, loader);
+      return new ClassInfo(superClass, loader, alwaysStatic);
     }
 
     /**
@@ -223,7 +248,7 @@ class StaticClassWriter extends ClassWriter {
       }
       ClassInfo[] result = new ClassInfo[interfaces.length];
       for (int i = 0; i < result.length; ++i) {
-        result[i] = new ClassInfo(interfaces[i], loader);
+        result[i] = new ClassInfo(interfaces[i], loader, alwaysStatic);
       }
       return result;
     }
