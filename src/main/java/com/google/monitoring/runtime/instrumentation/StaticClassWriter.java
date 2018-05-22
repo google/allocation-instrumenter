@@ -62,8 +62,6 @@ import java.io.IOException;
  * org.objectweb.asm.util.ClassWriterComputeFramesTest, which contains
  * the same logic in a subclass.  The code here has been slightly
  * cleaned up for readability.
- *
- * @author 
  */
 public class StaticClassWriter extends ClassWriter {
 
