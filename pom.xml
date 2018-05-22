@@ -66,8 +66,8 @@
   </scm>
 
   <issueManagement>
-    <system>Google Code Issue Tracking</system>
-    <url>http://code.google.com/p/java-allocation-instrumenter/issues/list</url>
+    <system>GitHub</system>
+    <url>https://github.com/google/allocation-instrumenter/issues</url>
   </issueManagement>
 
   <properties>
