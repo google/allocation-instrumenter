@@ -1,0 +1,10 @@
+keep com.google.common.collect.ComputingCache
+keep com.google.common.collect.ComputingConcurrentHashMap
+keep com.google.common.collect.ForwardingMap
+keep com.google.common.collect.MapMaker
+keep com.google.common.base.FunctionalEquivalence
+keep com.google.common.base.PairwiseEquivalence
+keep com.google.common.base.Supplier
+keep com.google.common.base.Suppliers
+keep com.google.common.primitives.Ints
+zap org.checkerframework.checker.nullness.**

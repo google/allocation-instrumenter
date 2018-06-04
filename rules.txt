@@ -1,0 +1,3 @@
+rule org.objectweb.asm.** com.google.monitoring.runtime.instrumentation.asm.@1
+rule com.google.common.flogger.** @0
+rule com.google.common.** com.google.monitoring.runtime.instrumentation.common.@0
