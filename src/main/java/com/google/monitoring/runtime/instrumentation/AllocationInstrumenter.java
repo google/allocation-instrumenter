@@ -117,11 +117,42 @@ public class AllocationInstrumenter implements ClassFileTransformer {
       return;
     }
 
+    /*
+     * Transform a single class first.
+     *
+     * The problem we need to avoid is this:
+     *
+     * - Our main retransformClasses() call transforms all classes that were loaded *before* that
+     * retransformClasses() call.
+     *
+     * - Our addTransformer() call transforms "all future class definitions... except definitions of
+     * classes upon which any registered transformer is dependent." (See
+     * Instrumentation.addTransformer.)
+     *
+     * Thus, there's a window of vulnerability: We miss anything that our transformers load during
+     * their transformation after not having loaded it during their construction.
+     *
+     * To avoid this, we need to make sure that our main retransformClasses() call happens after our
+     * transformers have loaded everything that they depend on. Our best shot at this is to run a
+     * transformation on a single class and only *then* request the list of already loaded classes.
+     *
+     * I'm not sure if the problem here is distinct from the one described near the top of this
+     * method, where we call Class.forName for several classes. That problem sounds similar except
+     * that it apparently was causing ClassCircularityError, not missed allocations. Maybe the
+     * classes mentioned in that class are initialized during construction, rather than during
+     * transformation?
+     */
+    try {
+      inst.retransformClasses(new Class<?>[] {Object.class});
+    } catch (UnmodifiableClassException e) {
+      System.err.println("AllocationInstrumenter was unable to retransform java.lang.Object.");
+    }
+
     // Get the set of already loaded classes that can be rewritten.
     Class<?>[] classes = inst.getAllLoadedClasses();
     ArrayList<Class<?>> classList = new ArrayList<Class<?>>();
     for (int i = 0; i < classes.length; i++) {
-      if (inst.isModifiableClass(classes[i])) {
+      if (inst.isModifiableClass(classes[i]) && classes[i] != Object.class) {
         classList.add(classes[i]);
       }
     }
