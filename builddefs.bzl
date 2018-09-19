@@ -138,6 +138,7 @@ def java_agent_binary(
               "TMPDIR=$$(mktemp -d $(@D)/tmp.XXX) && " +
               "cd $${TMPDIR} && " +
               "$${JAR} xf $${IN} &&" +
+              "rm -rf $$(find . -name module-info\.class) &&" +
               "$${JAR} cfm $${OUT} META-INF/MANIFEST.MF $$(find . -type f \( -not -regex \".com/google/build/Data.class\" -and -not -regex \".*build-data\.properties\" \) )",
         toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
         visibility = ["//visibility:public"],
