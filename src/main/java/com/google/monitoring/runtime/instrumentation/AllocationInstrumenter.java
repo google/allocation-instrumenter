@@ -70,10 +70,10 @@ public class AllocationInstrumenter implements ClassFileTransformer {
   public static void premain(String agentArgs, Instrumentation inst) {
     AllocationRecorder.setInstrumentation(inst);
 
-    // Force eager class loading here; we need these classes in order to do
-    // instrumentation, so if we don't do the eager class loading, we
-    // get a ClassCircularityError when trying to load and instrument
-    // this class.
+    // Force eager class loading here.  The instrumenter relies on these classes.  If we load them
+    // for the first time during instrumentation, the instrumenter will try to rewrite them.  But
+    // the instrumenter needs these classes to run, so it will try to load them during that rewrite
+    // pass.  This results in a ClassCircularityError.
     try {
       Class.forName("sun.security.provider.PolicyFile");
       Class.forName("java.util.ResourceBundle");
@@ -135,12 +135,6 @@ public class AllocationInstrumenter implements ClassFileTransformer {
      * To avoid this, we need to make sure that our main retransformClasses() call happens after our
      * transformers have loaded everything that they depend on. Our best shot at this is to run a
      * transformation on a single class and only *then* request the list of already loaded classes.
-     *
-     * I'm not sure if the problem here is distinct from the one described near the top of this
-     * method, where we call Class.forName for several classes. That problem sounds similar except
-     * that it apparently was causing ClassCircularityError, not missed allocations. Maybe the
-     * classes mentioned in that class are initialized during construction, rather than during
-     * transformation?
      */
     try {
       inst.retransformClasses(new Class<?>[] {Object.class});
