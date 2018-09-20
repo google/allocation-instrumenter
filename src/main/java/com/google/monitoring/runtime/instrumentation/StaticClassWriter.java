@@ -188,7 +188,7 @@ public class StaticClassWriter extends ClassWriter {
             loader.getResourceAsStream(fileName);
         cr = new ClassReader(is);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Error reading: " + fileName, e);
       } finally {
         if (is != null) {
           try {
