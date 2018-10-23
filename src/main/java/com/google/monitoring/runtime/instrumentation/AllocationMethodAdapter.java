@@ -110,7 +110,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
   /** A new AllocationMethodAdapter is created for each method that gets visited. */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass, String recorderMethod) {
-    super(Opcodes.ASM6, mv);
+    super(Opcodes.ASM7_EXPERIMENTAL, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }

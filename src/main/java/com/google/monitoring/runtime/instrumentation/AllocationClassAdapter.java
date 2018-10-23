@@ -32,7 +32,7 @@ class AllocationClassAdapter extends ClassVisitor {
   private final String recorderMethod;
 
   public AllocationClassAdapter(ClassVisitor cv, String recorderClass, String recorderMethod) {
-    super(Opcodes.ASM6, cv);
+    super(Opcodes.ASM7_EXPERIMENTAL, cv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }
