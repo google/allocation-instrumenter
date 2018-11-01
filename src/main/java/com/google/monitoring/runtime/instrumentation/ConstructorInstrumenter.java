@@ -145,7 +145,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     Class<?> cl;
 
     ConstructorMethodAdapter(MethodVisitor mv, Class<?> cl) {
-      super(Opcodes.ASM7_EXPERIMENTAL, mv);
+      super(Opcodes.ASM7, mv);
       this.cl = cl;
     }
 
@@ -217,7 +217,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     Class<?> cl;
 
     public ConstructorClassAdapter(ClassVisitor cv, Class<?> cl) {
-      super(Opcodes.ASM7_EXPERIMENTAL, cv);
+      super(Opcodes.ASM7, cv);
       this.cl = cl;
     }
 
