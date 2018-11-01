@@ -35,6 +35,7 @@ def java_agent_binary(
         deps,
         visibility = ["//visibility:private"],
         compatible_with = None,
+        resources = None,
         **kwds):
     """Builddef to create a Java instrumentation agent cleanly.
 
@@ -110,6 +111,7 @@ def java_agent_binary(
         runtime_deps = [":" + library_name],
         visibility = ["//visibility:private"],
         compatible_with = compatible_with,
+        resources = resources,
         **kwds
     )
 
