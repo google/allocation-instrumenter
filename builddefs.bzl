@@ -20,7 +20,7 @@ def expand_template_impl(ctx):
 expand_template = rule(
     implementation = expand_template_impl,
     attrs = {
-        "template": attr.label(mandatory = True, allow_files = True, single_file = True),
+        "template": attr.label(mandatory = True, allow_single_file = True),
         "substitutions": attr.string_dict(mandatory = True),
         "out": attr.output(mandatory = True),
         "is_executable": attr.bool(default = False, mandatory = False),
