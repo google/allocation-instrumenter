@@ -173,6 +173,9 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
     }
   }
 
+  // Each thread remembers the last object the thread has seen.
+  private static final ThreadLocal<Object> lastObject = new ThreadLocal<>();
+
   /**
    * Bytecode is rewritten to invoke this method; it calls the sampler for the given class. Note
    * that, unless the javaagent command line argument "subclassesAlso" is specified, it won't do
@@ -182,6 +185,12 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
    */
   @SuppressWarnings("unchecked")
   public static void invokeSamplers(Object o) {
+    // Remember the last object for this thread, skip if seen already.
+    if (lastObject.get() == o) {
+      return;
+    }
+    lastObject.set(o);
+
     Class<?> currentClass = o.getClass();
     while (currentClass != null) {
       List<ConstructorCallback<?>> samplers = samplerMap.get(currentClass);
