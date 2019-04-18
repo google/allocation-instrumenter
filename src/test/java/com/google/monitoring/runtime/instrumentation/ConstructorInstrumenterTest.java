@@ -22,10 +22,6 @@ public class ConstructorInstrumenterTest {
 
   static class SubclassOfBasicFunctions extends BasicFunctions {}
 
-  private static boolean isThreadConstructor(StackTraceElement elt) {
-    return elt.getClassName().equals("java.lang.Thread") && elt.getMethodName().equals("<init>");
-  }
-
   @Test
   public void testThreads() throws UnmodifiableClassException {
     final BasicFunctions bf = new BasicFunctions();
@@ -34,24 +30,7 @@ public class ConstructorInstrumenterTest {
         new ConstructorCallback<Thread>() {
           @Override
           public void sample(Thread t) {
-            // Protect against chained constructors introduced in JDK11.  This would probably be
-            // faster if we use Java 9's stack walking API, but we want to keep the code backwards
-            // compatible.
-            StackTraceElement[] stes = Thread.currentThread().getStackTrace();
-            int i = 0;
-            // Find the first thread constructor
-            while (i < stes.length && !isThreadConstructor(stes[i])) {
-              i++;
-            }
-            // Count the total number of thread constructors
-            int constructorCount = 0;
-            while (i < stes.length && isThreadConstructor(stes[i])) {
-              constructorCount++;
-              i++;
-            }
-            if (constructorCount == 1) {
-              bf.count++;
-            }
+            bf.count++;
           }
         });
     int numThreads = 10;
