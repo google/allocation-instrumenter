@@ -92,3 +92,4 @@ genrule(
 )
 
 ## end common/collect generation.
+exports_files(["Bootstrap.java.in"])
