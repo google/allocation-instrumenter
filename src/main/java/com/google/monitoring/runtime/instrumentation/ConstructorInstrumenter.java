@@ -116,7 +116,7 @@ public class ConstructorInstrumenter implements ClassFileTransformer {
   public static byte[] instrument(byte[] originalBytes, Class<?> classBeingRedefined) {
     try {
       ClassReader cr = new ClassReader(originalBytes);
-      ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+      ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
       VerifyingClassAdapter vcw = new VerifyingClassAdapter(cw, originalBytes, cr.getClassName());
       ClassVisitor adapter = new ConstructorClassAdapter(vcw, classBeingRedefined);
 
