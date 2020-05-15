@@ -36,6 +36,7 @@ def java_agent_binary(
         visibility = ["//visibility:private"],
         compatible_with = None,
         resources = None,
+        extra_runtime_deps = [],
         **kwds):
     """Builddef to create a Java instrumentation agent cleanly.
 
@@ -48,6 +49,7 @@ def java_agent_binary(
          deploy_jar_name: The name of the resulting deploy JAR.
          premain_class: The class to be run prior to main().  See the
            documentation for java.lang.instrument for more information.
+      extra_runtime_deps: runtime_deps added to java_binary or java_test calls
     """
 
     simple_class_name = premain_class[premain_class.rfind(".") + 1:]
@@ -108,7 +110,7 @@ def java_agent_binary(
         deps = [
             "@google_bazel_common//third_party/java/jsr250_annotations",
         ],
-        runtime_deps = [":" + library_name],
+        runtime_deps = [":" + library_name] + extra_runtime_deps,
         visibility = ["//visibility:private"],
         compatible_with = compatible_with,
         resources = resources,
@@ -140,8 +142,8 @@ def java_agent_binary(
               "TMPDIR=$$(mktemp -d $(@D)/tmp.XXX) && " +
               "cd $${TMPDIR} && " +
               "$${JAR} xf $${IN} &&" +
-              "rm -rf $$(find . -name module-info\.class) &&" +
-              "$${JAR} cfm $${OUT} META-INF/MANIFEST.MF $$(find . -type f \( -not -regex \".com/google/build/Data.class\" -and -not -regex \".*build-data\.properties\" \) )",
+              "rm -rf $$(find . -name module-info\\.class) &&" +
+              "$${JAR} cfm $${OUT} META-INF/MANIFEST.MF $$(find . -type f \\( -not -regex \".com/google/build/Data.class\" -and -not -regex \".*build-data\\.properties\" \\) )",
         toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
         visibility = ["//visibility:public"],
         compatible_with = compatible_with,
