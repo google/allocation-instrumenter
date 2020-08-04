@@ -1,3 +1,5 @@
+load("//tools/build_defs/testing:bzl_library.bzl", "bzl_library")
+
 licenses(["notice"])  # Apache License 2.0
 
 load(":builddefs.bzl", "java_agent_binary")
@@ -36,4 +38,10 @@ filegroup(
 filegroup(
     name = "bootstrap",
     srcs = ["//src/main/java/com/google/monitoring/runtime/instrumentation:Bootstrap.java.in"],
+)
+
+bzl_library(
+    name = "builddefs_bzl",
+    srcs = ["builddefs.bzl"],
+    parse_tests = False,
 )
