@@ -37,7 +37,7 @@ java_library(
         "ConstructorInstrumenter.java",
     ],
     deps = [
-        ":collect.jar",
+        ":guava.jar",
         ":sampler",
         ":staticclasswriter",
         ":verifying_class_adapter",
@@ -57,7 +57,7 @@ java_library(
 ## This generates exactly what we need from Guava, and no more.
 
 java_binary(
-    name = "collect_base",
+    name = "guava_base",
     main_class = "NotSuitableAsAMain",
     runtime_deps = [
         "@google_bazel_common//third_party/java/guava",
@@ -65,28 +65,27 @@ java_binary(
 )
 
 filegroup(
-    name = "jarjar_collect",
-    srcs = ["jarjar_collect.txt"],
+    name = "jarjar_guava",
+    srcs = ["jarjar_guava.txt"],
 )
 
 JARJAR = "@bazel_tools//third_party/jarjar:jarjar_bin"
 
 genrule(
-    name = "collect_no_classes",
-    srcs = ["collect_base_deploy.jar"],
-    outs = ["collect_no_classes.jar"],
-    cmd = "$(location " + JARJAR + ") process $(location :jarjar_collect) '$<' '$@'",
+    name = "guava_no_classes",
+    srcs = ["guava_base_deploy.jar"],
+    outs = ["guava_no_classes.jar"],
+    cmd = "$(location " + JARJAR + ") process $(location :jarjar_guava) '$<' '$@'",
     tools = [
-        ":jarjar_collect",
+        ":jarjar_guava",
         JARJAR,
-        "@google_bazel_common//third_party/java/guava",
     ],
 )
 
 genrule(
-    name = "collect",
-    srcs = ["collect_no_classes.jar"],
-    outs = ["collect.jar"],
+    name = "guava",
+    srcs = ["guava_no_classes.jar"],
+    outs = ["guava.jar"],
     cmd = "JAR=$(JAVABASE)/bin/jar; $${JAR} xf $< && $${JAR} cf $@ $$(find . -type f  -regex \".*.class\" -or -regex \".*META-INF.*\")",
     toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )

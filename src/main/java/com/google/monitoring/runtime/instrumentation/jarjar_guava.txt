@@ -1,0 +1,5 @@
+keep com.google.common.cache.Cache
+keep com.google.common.cache.CacheBuilder
+zap com.google.errorprone.annotations.**
+zap com.google.j2objc.annotations.**
+zap org.checkerframework.**
