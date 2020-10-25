@@ -1,4 +1,4 @@
-load("//tools/build_defs/testing:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])  # Apache License 2.0
 
@@ -43,5 +43,4 @@ filegroup(
 bzl_library(
     name = "builddefs_bzl",
     srcs = ["builddefs.bzl"],
-    parse_tests = False,
 )
