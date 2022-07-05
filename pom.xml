@@ -72,7 +72,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <projectAsmVersion>7.2</projectAsmVersion>
+    <projectAsmVersion>9.3</projectAsmVersion>
     <gpg.skip>true</gpg.skip>
   </properties>
 
