@@ -1,6 +1,6 @@
 # Tests for bytecode rewriting functionality in c.g.m.r.instrumentation.
 
-licenses(["notice"])  # Apache License 2.0
+licenses(["notice"])
 
 java_library(
     name = "helpers",
@@ -22,6 +22,9 @@ java_import(
     name = "compile_only_agent",
     jars = ["//:allocationinstrumenteragent_deploy.jar"],
     neverlink = 1,
+    tags = [
+        "incomplete-deps",  # remove this suppression and add any missing deps, see go/java-import-deps-checking-lsc
+    ],
 )
 
 sh_binary(
@@ -51,6 +54,19 @@ java_test(
     deps = [
         ":helpers",
         "@google_bazel_common//third_party/java/junit",
+    ],
+)
+
+java_binary(
+    name = "allocationinstrumenterverifier",
+    srcs = [
+        "AllocationInstrumenterVerifier.java",
+    ],
+    main_class = ("com.google.monitoring.runtime.instrumentation." +
+                  "AllocationInstrumenterVerifier"),
+    deps = [
+        ":helpers",
+        "@google_bazel_common//third_party/java/apache_bcel",
     ],
 )
 
@@ -117,7 +133,10 @@ java_test(
     name = "ConstructorInstrumenterTest",
     srcs = ["ConstructorInstrumenterTest.java"],
     data = ["//:allocationinstrumenteragent_deploy.jar"],
-    javacopts = ["-Xlint:all"],
+    javacopts = [
+        "-Xlint:all",
+        "-XepOpt:CheckReturnValue:CheckAllConstructors=false",  # b/226969262
+    ],
     jvm_flags = ["-javaagent:$(location //:allocationinstrumenteragent_deploy.jar)=manualOnly,subclassesAlso"],
     deps = [
         ":compile_only_agent",

@@ -79,12 +79,6 @@ def java_agent_binary(
         native.java_library(
             name = library_name,
             srcs = srcs,
-            javacopts = [
-                # ASM has some deprecated methods we really shouldn't be
-                # calling at all.
-                "-Xlint:deprecation",
-                "-Werror",
-            ],
             visibility = visibility,
             deps = deps,
             compatible_with = compatible_with,
@@ -121,10 +115,10 @@ def java_agent_binary(
         name = library_name + "_asm_rename",
         srcs = [library_name + "_internal_deploy.jar"],
         outs = [library_name + "_internal_2_deploy.jar"],
-        cmd = "$(location @bazel_tools//third_party/jarjar:jarjar_bin) process $(location :jarjar_rules) '$<' '$@'",
+        cmd = "$(location @google_bazel_common//tools/jarjar) process $(location :jarjar_rules) '$<' '$@'",
         tools = [
             ":jarjar_rules",
-            "@bazel_tools//third_party/jarjar:jarjar_bin",
+            "@google_bazel_common//tools/jarjar",
         ],
         visibility = ["//visibility:private"],
         compatible_with = compatible_with,

@@ -1,4 +1,6 @@
-licenses(["notice"])  # Apache License 2.0
+load("@google_bazel_common//tools/javadoc:javadoc.bzl", "javadoc_library")
+
+licenses(["notice"])
 
 package(default_visibility = [
     "//visibility:public",
@@ -27,6 +29,18 @@ java_library(
     ],
 )
 
+# Just for generating a full srcjar for the package
+java_library(
+    name = "allocation_instrumenter_all",
+    srcs = glob(["*.java"]),
+    deps = [
+        ":guava.jar",
+        "@google_bazel_common//third_party/java/asm",
+        "@google_bazel_common//third_party/java/asm:asm-commons",
+        "@google_bazel_common//third_party/java/asm:asm-tree",
+    ],
+)
+
 java_library(
     name = "allocation_instrumenter",
     srcs = [
@@ -44,6 +58,13 @@ java_library(
         "@google_bazel_common//third_party/java/asm",
         "@google_bazel_common//third_party/java/asm:asm-commons",
     ],
+)
+
+javadoc_library(
+    name = "javadoc",
+    srcs = glob(["*.java"]),
+    root_packages = ["com.google.monitoring.runtime.instrumentation"],
+    deps = [":allocation_instrumenter"],
 )
 
 java_library(
@@ -69,7 +90,7 @@ filegroup(
     srcs = ["jarjar_guava.txt"],
 )
 
-JARJAR = "@bazel_tools//third_party/jarjar:jarjar_bin"
+JARJAR = "@google_bazel_common//tools/jarjar"
 
 genrule(
     name = "guava_no_classes",
