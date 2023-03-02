@@ -29,7 +29,7 @@ class AgentIntegrity {
     String line = br.readLine();
     while (line != null) {
       if (line.startsWith("build.target")) {
-        if (!line.endsWith("AgentIntegrity_deploy.jar")) {
+        if (!line.endsWith("AgentIntegrity_deploy.jar") && !line.endsWith("AgentIntegrity")) {
           throw new IllegalStateException("Wrong build target found");
         }
         break;

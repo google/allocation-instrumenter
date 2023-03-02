@@ -1,8 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
-licenses(["notice"])  # Apache License 2.0
-
+load("//tools:maven.bzl", "pom_file")
 load(":builddefs.bzl", "java_agent_binary")
+
+licenses(["notice"])
 
 exports_files(
     ["builddefs.bzl"],
@@ -18,6 +18,11 @@ java_agent_binary(
         "//src/main/java/com/google/monitoring/runtime/instrumentation:sampler",
         "//src/main/java/com/google/monitoring/runtime/instrumentation:staticclasswriter",
     ],
+)
+
+pom_file(
+    name = "pom",
+    targets = [":allocationinstrumenter"],
 )
 
 # Since some Java applications use different versions of ASM, we

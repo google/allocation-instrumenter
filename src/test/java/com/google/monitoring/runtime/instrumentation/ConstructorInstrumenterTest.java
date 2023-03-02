@@ -71,8 +71,8 @@ public class ConstructorInstrumenterTest {
         });
 
     int numBFs = 2;
-    new SubclassOfBasicFunctions();
-    new BasicFunctions() {};
+    SubclassOfBasicFunctions unused = new SubclassOfBasicFunctions();
+    BasicFunctions unused2 = new BasicFunctions() {};
     assertEquals("Did not see correct number of BasicFunctions", numBFs, bf.count);
   }
 }
