@@ -111,7 +111,6 @@ sh_test(
 
 ### End tests of agent integrity / build data stripping.
 
-# TODO(java-platform-team): Move to third_party
 java_test(
     name = "MetaspaceExhaustionTest",
     srcs = ["MetaspaceExhaustionTest.java"],

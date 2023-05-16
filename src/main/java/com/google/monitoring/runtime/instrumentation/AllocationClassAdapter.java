@@ -16,9 +16,9 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
@@ -32,7 +32,7 @@ class AllocationClassAdapter extends ClassVisitor {
   private final String recorderMethod;
 
   public AllocationClassAdapter(ClassVisitor cv, String recorderClass, String recorderMethod) {
-    super(Opcodes.ASM7, cv);
+    super(Opcodes.ASM9, cv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }

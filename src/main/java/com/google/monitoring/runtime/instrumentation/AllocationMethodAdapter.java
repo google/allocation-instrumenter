@@ -16,6 +16,7 @@
 
 package com.google.monitoring.runtime.instrumentation;
 
+import org.objectweb.asm.Opcodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -110,7 +111,7 @@ class AllocationMethodAdapter extends MethodVisitor {
 
   /** A new AllocationMethodAdapter is created for each method that gets visited. */
   public AllocationMethodAdapter(MethodVisitor mv, String recorderClass, String recorderMethod) {
-    super(Opcodes.ASM7, mv);
+    super(Opcodes.ASM9, mv);
     this.recorderClass = recorderClass;
     this.recorderMethod = recorderMethod;
   }

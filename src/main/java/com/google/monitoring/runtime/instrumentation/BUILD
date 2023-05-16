@@ -17,7 +17,6 @@ java_library(
     deps = [
         "@google_bazel_common//third_party/java/asm",
         "@google_bazel_common//third_party/java/asm:asm-commons",
-        "@google_bazel_common//third_party/java/asm:asm-tree",
     ],
 )
 
@@ -37,6 +36,7 @@ java_library(
         ":guava.jar",
         "@google_bazel_common//third_party/java/asm",
         "@google_bazel_common//third_party/java/asm:asm-commons",
+        # Necessary because of https://github.com/google/bazel-common/issues/169:
         "@google_bazel_common//third_party/java/asm:asm-tree",
     ],
 )
@@ -57,6 +57,8 @@ java_library(
         ":verifying_class_adapter",
         "@google_bazel_common//third_party/java/asm",
         "@google_bazel_common//third_party/java/asm:asm-commons",
+        # Necessary because of https://github.com/google/bazel-common/issues/169:
+        "@google_bazel_common//third_party/java/asm:asm-tree",
     ],
 )
 
