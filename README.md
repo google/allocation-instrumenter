@@ -10,7 +10,7 @@ The [latest release][] is available from [Maven Central][] as:
 <dependency>
   <groupId>com.google.code.java-allocation-instrumenter</groupId>
   <artifactId>java-allocation-instrumenter</artifactId>
-  <version>3.3.2</version>
+  <version>3.3.3</version>
 </dependency>
 ```
 
