@@ -10,7 +10,7 @@ The [latest release][] is available from [Maven Central][] as:
 <dependency>
   <groupId>com.google.code.java-allocation-instrumenter</groupId>
   <artifactId>java-allocation-instrumenter</artifactId>
-  <version>3.3.3</version>
+  <version>3.3.4</version>
 </dependency>
 ```
 
@@ -50,6 +50,6 @@ For more information on how to get or use the allocation instrumenter, see [Gett
 
 [java.lang.instrument]: http://java.sun.com/javase/6/docs/api/java/lang/instrument/package-summary.html
 [ASM]: http://asm.ow2.org/
-[latest release]: https://github.com/google/allocation-instrumenter/releases/tag/java-allocation-instrumenter-3.3.2
-[Maven Central]: http://search.maven.org/#artifactdetails%7Ccom.google.code.java-allocation-instrumenter%7Cjava-allocation-instrumenter%7C3.3.2%7Cjar
+[latest release]: https://github.com/google/allocation-instrumenter/releases/tag/java-allocation-instrumenter-3.3.4
+[Maven Central]: http://search.maven.org/#artifactdetails%7Ccom.google.code.java-allocation-instrumenter%7Cjava-allocation-instrumenter%7C3.3.4%7Cjar
 [Getting Started]: https://github.com/google/allocation-instrumenter/wiki
