@@ -8,6 +8,9 @@ but you should be able to use the java_agent_binary by itself; just
 add yourself to the java_agent_builddef_users package group.
 """
 
+load("@rules_java//java:java_binary.bzl", "java_binary")
+load("@rules_java//java:java_library.bzl", "java_library")
+
 # expand_template is present in a standard template in google3, but not in open-source.
 def expand_template_impl(ctx):
     ctx.actions.expand_template(
@@ -76,7 +79,7 @@ def java_agent_binary(
     )
 
     if srcs != []:
-        native.java_library(
+        java_library(
             name = library_name,
             srcs = srcs,
             visibility = visibility,
@@ -85,14 +88,13 @@ def java_agent_binary(
             **kwds
         )
     else:
-        native.java_library(
+        java_library(
             name = library_name,
             exports = deps,
             compatible_with = compatible_with,
             **kwds
         )
-
-    native.java_binary(
+    java_binary(
         name = library_name + "_internal",
         srcs = [bootstrap_file],
         deploy_manifest_lines = [

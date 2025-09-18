@@ -2,6 +2,7 @@ package com.google.monitoring.runtime.instrumentation;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.util.function.Supplier;
 
 /** Helper class for testing AllocationInstrumenter. Does various allocations. */
 public class Instrumentee implements Cloneable {
@@ -100,5 +101,13 @@ public class Instrumentee implements Cloneable {
   public Object assignFieldMultiArrayClone(int[][] twoDarray) {
     this.twoDarray = twoDarray.clone();
     return this.twoDarray;
+  }
+
+  public Supplier<Object> allocateLambdaWithCapture(Object r) {
+    return () -> r;
+  }
+
+  public Supplier<Object> allocateConstantLambda() {
+    return () -> "Hello world";
   }
 }

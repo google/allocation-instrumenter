@@ -6,4 +6,5 @@
 # Also makes sure that org.objectweb.asm classes are no longer
 # contained in the final agent
 
-"${1}" --singlejar --jvm_flags="${2}"
+# -Xverify:remote prevents test failure under fastdebug JVM with java_test's default -Xverify:none.
+"${1}" --singlejar --jvm_flags="${2} -Xverify:remote"

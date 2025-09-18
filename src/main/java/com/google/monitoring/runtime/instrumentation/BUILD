@@ -1,4 +1,5 @@
 load("@google_bazel_common//tools/javadoc:javadoc.bzl", "javadoc_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 licenses(["notice"])
 

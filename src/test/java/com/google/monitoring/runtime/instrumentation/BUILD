@@ -1,5 +1,9 @@
 # Tests for bytecode rewriting functionality in c.g.m.r.instrumentation.
 
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library", "java_test")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 licenses(["notice"])
 
 java_library(
@@ -75,6 +79,8 @@ java_test(
     srcs = ["InstrumenterRefTest.java"],
     data = ["//:allocationinstrumenteragent_deploy.jar"],
     jvm_flags = [
+        # Prevents test failure under fastdebug JVM with java_test's default -Xverify:none.
+        "-Xverify:remote",
         "-javaagent:$(location //:allocationinstrumenteragent_deploy.jar)",
     ],
     deps = [
@@ -134,9 +140,12 @@ java_test(
     data = ["//:allocationinstrumenteragent_deploy.jar"],
     javacopts = [
         "-Xlint:all",
-        "-XepOpt:CheckReturnValue:CheckAllConstructors=false",  # b/226969262
     ],
-    jvm_flags = ["-javaagent:$(location //:allocationinstrumenteragent_deploy.jar)=manualOnly,subclassesAlso"],
+    jvm_flags = [
+        # Prevents test failure under fastdebug JVM with java_test's default -Xverify:none.
+        "-Xverify:remote",
+        "-javaagent:$(location //:allocationinstrumenteragent_deploy.jar)=manualOnly,subclassesAlso",
+    ],
     deps = [
         ":compile_only_agent",
         "//src/main/java/com/google/monitoring/runtime/instrumentation:sampler",

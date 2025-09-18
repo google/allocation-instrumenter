@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -60,7 +61,7 @@ public class AllocationInstrumenterTest {
             "recorder",
             "com.google.monitoring.runtime.instrumentation.Instrumentee");
 
-    Object tempo = instrumenteeClass.newInstance();
+    Object tempo = instrumenteeClass.getConstructor().newInstance();
 
     Method m;
 
@@ -170,6 +171,29 @@ public class AllocationInstrumenterTest {
     assertEquals(expectedEventList, actualEventList);
   }
 
+  @Test
+  public void testLambda() throws Exception {
+    Class<?> instrumenteeClass =
+        InstrumentingClassLoader.getInstrumenteeClass(
+            AllocationInstrumenterTest.class.getName().replace('.', '/'),
+            "recorder",
+            "com.google.monitoring.runtime.instrumentation.Instrumentee");
+
+    Object tempo = instrumenteeClass.getConstructor().newInstance();
+
+    Method m;
+    m = instrumenteeClass.getMethod("allocateLambdaWithCapture", Object.class);
+    assertNotNull(m);
+    m.invoke(tempo, (Object) "Hello capture");
+
+    m = instrumenteeClass.getMethod("allocateConstantLambda");
+    assertNotNull(m);
+    m.invoke(tempo);
+
+    // TODO(b/324421111): Add instrumentation for lambdas.
+    assertEquals(Collections.emptyList(), actualEventList);
+  }
+
   public static void recorder(int count, String desc, Object newObj) {
     actualEventList.add(new Event(count, desc, newObj));
   }
@@ -190,6 +214,7 @@ public class AllocationInstrumenterTest {
       this.newObj = newObj;
     }
 
+    @Override
     public boolean equals(Object other) {
       if (!(other instanceof Event)) {
         return false;
@@ -204,10 +229,12 @@ public class AllocationInstrumenterTest {
       return ret;
     }
 
+    @Override
     public String toString() {
       return "<" + count + "," + desc + "," + newObj + ">";
     }
 
+    @Override
     public int hashCode() {
       return count ^ desc.hashCode() ^ newObj.hashCode();
     }
