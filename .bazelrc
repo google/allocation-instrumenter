@@ -1,0 +1,1 @@
+build --java_runtime_version=21 --javacopt='--release 8'

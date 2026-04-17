@@ -1,9 +1,9 @@
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
-bazel_dep(name = "rules_java", version = "8.15.2")
-bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "rules_java", version = "9.6.1")
+bazel_dep(name = "rules_shell", version = "0.7.1")
 bazel_dep(name = "google_bazel_common")
 git_override(
     module_name = "google_bazel_common",
-    commit = "8c50e017875b3fa93729cb75d68c345c4ef8b5d1",
+    commit = "2f1bc52b69a7503eefb9acaacef5576d4eb513a4",
     remote = "https://github.com/google/bazel-common",
 )
