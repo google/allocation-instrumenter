@@ -20,6 +20,6 @@ bazelisk test //...
 bash $(dirname $0)/execute-deploy.sh \
   "gpg:sign-and-deploy-file" \
   "$version_name" \
-  "-DrepositoryId=sonatype-nexus-staging" \
-  "-Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/" \
+  "-DrepositoryId=sonatype-central-staging" \
+  "-Durl=https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/" \
   "-Dgpg.keyname=${key}"
